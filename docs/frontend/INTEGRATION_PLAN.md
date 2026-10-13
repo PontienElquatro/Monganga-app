@@ -24,7 +24,8 @@ Règles : service_role côté serveur uniquement, rôle toujours lu en base, CSR
 | 0 | Intégration du front, config, proxy.ts | — | ✅ |
 | 1 | Authentification | `GET /auth/csrf`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`, `POST /auth/register/patient` | ✅ code + tests (à valider avec le vrai Supabase) |
 | 2 | Annuaire médecins | `GET /doctors`, `GET /doctors/{id}/slots` | ✅ code + tests (à valider avec le vrai Supabase) |
-| 3 | Réservation + paiement mock | `/bookings*` | ⏳ branche `back-end` à fusionner. `appointments` ne s'écrit **jamais** en direct : uniquement via les RPC `book_appointment`, `pay_reservation_mock`, `refuse_appointment`, `cancel_appointment` (README back-end §7) |
+| 3a | Lecture des données du compte | `GET /bookings`, `/prescriptions`, `/transactions`, `/notifications`, `POST /notifications/read` | ✅ code + tests (tableau de bord patient) |
+| 3b | Réservation + paiement mock | `POST /bookings`, `/bookings/{id}*` | ⏳ branche `back-end` à fusionner. `appointments` ne s'écrit **jamais** en direct : uniquement via les RPC `book_appointment`, `pay_reservation_mock`, `refuse_appointment`, `cancel_appointment` (README back-end §7) |
 | 4 | Agenda / disponibilités médecin | `/doctors/me/availability*` | ⏳ |
 | 5 | Profil, préférences | `/me/*` | ⏳ |
 | 6 | Candidature médecin + admin | `/doctor-applications`, `/admin/*` | ⏳ upload pièces non prêt côté Junior |
@@ -47,6 +48,12 @@ pour le contrat HTTP du front.
 - **Annuaire** : `doctors_public` n'a ni `commune`, ni `languages`, ni note. `GET /doctors` renvoie `commune: ""`,
   `languages: []`, `rating: null` (rien d'inventé). À demander à Junior : colonnes ou vue enrichie. Durée = durée du créneau (30 min par défaut).
 - **Délai de 24 h avant rendez-vous** : exigé par le contrat du front, absent du README backend (seule l'annulation a 24 h). À confirmer.
+- **Statuts de réservation** : `en_attente` → `payment_pending` (réservation de 1 $ non payée), `confirme` → `confirmed`,
+  `termine` → `completed`, `refuse`/`annule`/`non_honore` → `cancelled`. L'état de paiement vient du dernier paiement `reservation` de la table `payments`.
+  Le front suppose un paiement unique (honoraire + frais) ; la base sépare réservation (1 $) et consultation : à trancher avec Junior.
+- **Ordonnances** : la base n'a qu'un champ `content` ; le contrat attend `medication` + `instructions`. Convention : 1re ligne = médicament, reste = consignes.
+- **Dépenses du patient** : le README backend (règle 7) dit que le patient n'a pas la rubrique « dépenses ce mois » ; le tableau de bord patient du front l'affiche (4e carte). À retirer ou à confirmer avec le client.
+- **Gains du médecin** : `GET /transactions` renvoie une liste vide pour un médecin tant que l'écran « mes gains » n'est pas branché sur `ledger_entries` (il ne doit voir que sa part de 70 %).
 - **Tarifs** : le front affiche des prix fixes ; le client veut `consultation_fee` par médecin (README §10).
 - **Comptes suspendus** : pas de statut sur `profiles` ; seul `doctor_status = 'suspendu'` existe.
 - **Visio, MaishaPay, PDF signé** : le front est prévu pour MaishaPay ; le README backend impose un paiement mock.

@@ -34,6 +34,7 @@
     if (error?.status === 403) return 'Cette action n’est pas autorisée pour votre compte.';
     if (error?.status === 409) return error.message || 'Les informations ont changé. Actualisez puis réessayez.';
     if (error?.status === 429) return 'Trop de tentatives. Patientez avant de réessayer.';
+    if (error?.status === 501) return error.message || 'Cette fonctionnalité n’est pas encore connectée au serveur.';
     if (error?.status >= 500) return 'Le service est indisponible. Réessayez dans quelques instants.';
     return error?.message || 'Une erreur est survenue.';
   }

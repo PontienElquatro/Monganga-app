@@ -124,3 +124,63 @@ test('inscription : une case cochée envoyée en chaîne « on » est refusée (
   assert.equal(validateRegistration({ ...goodReg, consent: 'on' }).ok, false)
   assert.equal(validateRegistration({ ...goodReg, consent: true }).ok, true)
 })
+
+import { eurosToCents, splitPrescription, toApiBooking, toApiBookingStatus, toApiNotification, toApiPaymentStatus, toApiPrescription, toApiTransaction } from '../lib/api/mappers.ts'
+
+const appt = {
+  id: 'a1', patient_id: 'p1', doctor_id: 'd1', status: 'confirme', reservation_fee: '1.00', consultation_fee: '20.00',
+  created_at: '2026-10-12T08:00:00Z',
+  availabilities: { start_time: '2026-10-20T09:00:00Z', end_time: '2026-10-20T09:30:00Z' },
+  payments: [
+    { type: 'reservation', amount: '1.00', status: 'echoue', provider: 'mock', provider_reference: 'old', created_at: '2026-10-12T08:01:00Z' },
+    { type: 'reservation', amount: '1.00', status: 'reussi', provider: 'mock', provider_reference: 'ref-2', created_at: '2026-10-12T08:05:00Z' },
+  ],
+}
+test('rendez-vous : statuts français -> contrat du front', () => {
+  assert.equal(toApiBookingStatus('en_attente'), 'payment_pending')
+  assert.equal(toApiBookingStatus('confirme'), 'confirmed')
+  assert.equal(toApiBookingStatus('termine'), 'completed')
+  for (const s of ['refuse', 'annule', 'non_honore']) assert.equal(toApiBookingStatus(s), 'cancelled')
+})
+test('paiements : statuts', () => {
+  assert.equal(toApiPaymentStatus('reussi'), 'paid')
+  assert.equal(toApiPaymentStatus('rembourse'), 'refunded')
+  assert.equal(toApiPaymentStatus(undefined), 'unpaid')
+})
+test('rendez-vous : montants en centimes, dernier paiement de réservation, créneau', () => {
+  const b = toApiBooking(appt, { doctorName: 'Dr Ilunga', patientName: 'Aline', doctorFee: null })
+  assert.equal(b.status, 'confirmed')
+  assert.equal(b.paymentStatus, 'paid')
+  assert.equal(b.priceCents, 2000)
+  assert.equal(b.feeCents, 100)
+  assert.equal(b.totalCents, 2100)
+  assert.equal(b.slot, '2026-10-20T09:00:00.000Z')
+  assert.equal(b.reference, 'ref-2')
+  assert.equal(b.confirmedAt, '2026-10-12T08:05:00.000Z')
+})
+test('rendez-vous : sans honoraire propre, repli sur celui du médecin ; créneau en tableau accepté', () => {
+  const b = toApiBooking({ ...appt, consultation_fee: null, payments: [], availabilities: [appt.availabilities] }, { doctorName: 'D', patientName: 'P', doctorFee: '25' })
+  assert.equal(b.priceCents, 2500)
+  assert.equal(b.paymentStatus, 'unpaid')
+  assert.equal(b.slot, '2026-10-20T09:00:00.000Z')
+})
+test('euros -> centimes : arrondi et valeurs invalides', () => {
+  assert.equal(eurosToCents('19.99'), 1999)
+  assert.equal(eurosToCents(null), 0)
+  assert.equal(eurosToCents('abc'), 0)
+})
+test('transactions : la réservation est la part plateforme, le reste 0', () => {
+  const base = { id: 't', appointment_id: 'a1', payer_id: 'p1', amount: '1.00', status: 'reussi', provider: 'mock', provider_reference: null, created_at: '2026-10-12T08:05:00Z', appointments: { doctor_id: 'd1' } }
+  const r = toApiTransaction({ ...base, type: 'reservation' }, 'Aline')
+  assert.deepEqual([r.amountCents, r.feeCents, r.status, r.doctorId], [100, 100, 'paid', 'd1'])
+  assert.equal(toApiTransaction({ ...base, type: 'consultation', amount: '20.00' }, 'Aline').feeCents, 0)
+})
+test('ordonnances : première ligne = médicament, reste = consignes', () => {
+  assert.deepEqual(splitPrescription('Paracétamol 500 mg\n1 comprimé 3 fois par jour'), { medication: 'Paracétamol 500 mg', instructions: '1 comprimé 3 fois par jour' })
+  assert.deepEqual(splitPrescription('Repos'), { medication: 'Repos', instructions: 'Repos' })
+  const p = toApiPrescription({ id: 'r', doctor_id: 'd1', patient_id: 'p1', content: 'X\nY', created_at: '2026-10-12T08:00:00Z', consultations: [{ appointment_id: 'a1' }] }, { doctorName: 'D', patientName: 'P' })
+  assert.deepEqual([p.bookingId, p.status, p.medication], ['a1', 'active', 'X'])
+})
+test('notifications : champs renommés', () => {
+  assert.deepEqual(toApiNotification({ id: 'n', title: 'T', body: null, is_read: false, created_at: '2026-10-12T08:00:00Z' }), { id: 'n', title: 'T', message: '', read: false, createdAt: '2026-10-12T08:00:00.000Z' })
+})

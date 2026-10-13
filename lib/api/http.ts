@@ -33,3 +33,8 @@ export async function readJson(request: NextRequest): Promise<Record<string, unk
     return null
   }
 }
+
+/** Route du contrat pas encore branchée sur Supabase. */
+export function notImplemented() {
+  return apiError(501, 'NOT_IMPLEMENTED', 'Cette fonctionnalité n’est pas encore connectée au serveur.')
+}
