@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (blocked) return blocked
 
   const parsed = validateRegistration(await readJson(request))
-  if (!parsed.ok) return apiError(400, 'VALIDATION', 'Vérifiez les champs du formulaire.', parsed.fields)
+  if (!parsed.ok) return apiError(400, 'VALIDATION', Object.values(parsed.fields)[0] ?? 'Vérifiez les champs du formulaire.', parsed.fields)
   const { name, email, phone, password } = parsed.value
 
   const supabase = await createClient()

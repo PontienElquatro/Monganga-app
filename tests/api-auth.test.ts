@@ -119,3 +119,8 @@ test('inscription : un rôle envoyé par le navigateur est ignoré', () => {
   const r = validateRegistration({ ...goodReg, role: 'admin' })
   assert.equal(r.ok && 'role' in r.value, false)
 })
+
+test('inscription : une case cochée envoyée en chaîne « on » est refusée (le front doit envoyer un booléen)', () => {
+  assert.equal(validateRegistration({ ...goodReg, consent: 'on' }).ok, false)
+  assert.equal(validateRegistration({ ...goodReg, consent: true }).ok, true)
+})

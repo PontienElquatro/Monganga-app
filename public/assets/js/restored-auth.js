@@ -49,7 +49,7 @@
       $('#form-patient .otp-notice span').textContent='Vous recevrez un email pour confirmer votre adresse.';
     }
     U.bindForm('register-form',async p=>{
-      const result=await D.register({name:`${p.firstName.trim()} ${p.lastName.trim()}`,email:p.email.trim(),phone:p.phone.trim(),password:p.password,consent:p.consent});
+      const result=await D.register({name:`${p.firstName.trim()} ${p.lastName.trim()}`,email:p.email.trim(),phone:p.phone.trim(),password:p.password,consent:!!p.consent});
       if(A.isConfigured()){
         if(result.signedIn){A.setSession(result.session);U.go(`${result.session.role}/dashboard.html`);return;}
         U.render(`${title('Vérifiez votre email','Un lien de confirmation vient de vous être envoyé. Cliquez dessus pour activer votre compte, puis connectez-vous.')}<a href="login.html" class="btn btn-primary btn-lg btn-block">Aller à la connexion</a>`);return;
