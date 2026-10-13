@@ -25,7 +25,7 @@ Règles : service_role côté serveur uniquement, rôle toujours lu en base, CSR
 | 1 | Authentification | `GET /auth/csrf`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`, `POST /auth/register/patient` | ✅ code + tests (à valider avec le vrai Supabase) |
 | 2 | Annuaire médecins | `GET /doctors`, `GET /doctors/{id}/slots` | ✅ code + tests (à valider avec le vrai Supabase) |
 | 3a | Lecture des données du compte | `GET /bookings`, `/prescriptions`, `/transactions`, `/notifications`, `POST /notifications/read` | ✅ code + tests (tableau de bord patient) |
-| 3b | Réservation + paiement mock | `POST /bookings`, `/bookings/{id}*` | ⏳ branche `back-end` à fusionner. `appointments` ne s'écrit **jamais** en direct : uniquement via les RPC `book_appointment`, `pay_reservation_mock`, `refuse_appointment`, `cancel_appointment` (README back-end §7) |
+| 3b | Réservation + paiement mock (patient) | `POST /bookings`, `GET /bookings/{id}`, `/bookings/{id}/payment` (GET, POST, `/cancel`), `POST /bookings/{id}/cancel` | ✅ code + tests. Uniquement via les RPC de Junior (`book_appointment`, `pay_reservation_mock`, `cancel_appointment`), jamais d'écriture directe. Reste en 501 : déplacement (`PUT /bookings/{id}/slot`) et décision médecin (`PUT /bookings/{id}/request-status`, module 4) |
 | 4 | Agenda / disponibilités médecin | `/doctors/me/availability*` | ⏳ |
 | 5 | Profil, préférences | `/me/*` | ⏳ |
 | 6 | Candidature médecin + admin | `/doctor-applications`, `/admin/*` | ⏳ upload pièces non prêt côté Junior |
@@ -54,6 +54,11 @@ pour le contrat HTTP du front.
 - **Ordonnances** : la base n'a qu'un champ `content` ; le contrat attend `medication` + `instructions`. Convention : 1re ligne = médicament, reste = consignes.
 - **Dépenses du patient** : le README backend (règle 7) dit que le patient n'a pas la rubrique « dépenses ce mois » ; le tableau de bord patient du front l'affiche (4e carte). À retirer ou à confirmer avec le client.
 - **Gains du médecin** : `GET /transactions` renvoie une liste vide pour un médecin tant que l'écran « mes gains » n'est pas branché sur `ledger_entries` (il ne doit voir que sa part de 70 %).
+- **Réservation (module 3b)** : `book_appointment` retient le créneau 30 min (libéré par `release_unpaid_reservations`) et crée un paiement mock
+  en attente ; `pay_reservation_mock` confirme directement (pas d'état « demande à accepter par le médecin » côté base). Le moyen de paiement choisi
+  (M-Pesa…) est validé mais **non enregistré** : `payments.provider` vaut `mock`. « Annuler le paiement » annule le rendez-vous (pas d'état brouillon en base).
+  Le rendez-vous est visible comme `payment_pending` dès la création (le front attendait `draft`).
+- **`supabase/03_rendezvous.sql`** : cité dans le README `back-end` mais absent du dépôt ; les 4 fonctions existent bien dans la base (lues le 13/10). À faire versionner par Junior.
 - **Tarifs** : le front affiche des prix fixes ; le client veut `consultation_fee` par médecin (README §10).
 - **Comptes suspendus** : pas de statut sur `profiles` ; seul `doctor_status = 'suspendu'` existe.
 - **Visio, MaishaPay, PDF signé** : le front est prévu pour MaishaPay ; le README backend impose un paiement mock.

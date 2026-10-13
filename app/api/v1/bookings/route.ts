@@ -1,42 +1,63 @@
-import { apiJson, notImplemented } from '@/lib/api/http'
+import { type NextRequest } from 'next/server'
+import { apiError, apiJson, guardMutation, readJson } from '@/lib/api/http'
 import { requireApiSession, unavailable } from '@/lib/api/guard'
 import { createClient } from '@/lib/supabase/server'
-import { fullNames } from '@/lib/api/names'
-import { toApiBooking, type AppointmentRow } from '@/lib/api/mappers'
+import { loadBookings } from '@/lib/api/bookings'
+import { mapRpcError } from '@/lib/api/rpc-errors'
+import { UUID_RE } from '@/lib/api/doctors'
 
 export const dynamic = 'force-dynamic'
 
-// GET /bookings -> Booking[] : uniquement les rendez-vous du compte (la RLS de `appointments` fait foi :
-// patient = les siens, médecin = ses patients, admin = tous).
+// GET /bookings -> Booking[] : uniquement les rendez-vous du compte (la RLS de `appointments` fait foi).
 export async function GET() {
   const auth = await requireApiSession()
   if ('denied' in auth) return auth.denied
-  const { session } = auth
-
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('appointments')
-    .select('id, patient_id, doctor_id, status, reservation_fee, consultation_fee, created_at, availabilities(start_time, end_time), payments(type, amount, status, provider, provider_reference, created_at)')
-    .order('created_at', { ascending: false })
-  if (error) return unavailable()
-  const rows = (data ?? []) as unknown as AppointmentRow[]
-  if (!rows.length) return apiJson([])
-
-  const { data: doctors } = await supabase.from('doctors_public').select('id, full_name, consultation_fee').in('id', [...new Set(rows.map(r => r.doctor_id))])
-  const doctorById = new Map((doctors ?? []).map(d => [d.id, d]))
-  const patientNames = session.role === 'patient'
-    ? new Map([[session.id, session.name]])
-    : await fullNames(rows.map(r => r.patient_id))
-
-  return apiJson(rows.map(row => {
-    const doctor = doctorById.get(row.doctor_id)
-    return toApiBooking(row, {
-      doctorName: row.doctor_id === session.id ? session.name : (doctor?.full_name?.trim() || 'Médecin'),
-      patientName: patientNames.get(row.patient_id) || 'Patient',
-      doctorFee: doctor?.consultation_fee ?? null,
-    })
-  }))
+  try { return apiJson(await loadBookings(auth.session)) } catch { return unavailable() }
 }
 
-// Création de réservation : module suivant (RPC book_appointment / pay_reservation_mock).
-export { notImplemented as POST }
+// POST /bookings { doctorId, slot } -> Booking (créneau retenu 30 min en attente du paiement).
+// Passe uniquement par la fonction SQL book_appointment (jamais d'insert direct dans `appointments`) :
+// réservation atomique, pas de double réservation, médecin validé, créneau futur.
+export async function POST(request: NextRequest) {
+  const blocked = guardMutation(request)
+  if (blocked) return blocked
+  const auth = await requireApiSession()
+  if ('denied' in auth) return auth.denied
+  const { session } = auth
+  if (session.role !== 'patient') return apiError(403, 'FORBIDDEN', 'Seul un patient peut réserver un rendez-vous.')
+
+  const body = await readJson(request)
+  const doctorId = typeof body?.doctorId === 'string' ? body.doctorId : ''
+  const slotMs = typeof body?.slot === 'string' ? Date.parse(body.slot) : NaN
+  if (!UUID_RE.test(doctorId) || !Number.isFinite(slotMs)) {
+    return apiError(400, 'VALIDATION', 'Choisissez un médecin et un créneau valides.', { slot: 'Choisissez un autre horaire.' })
+  }
+  const SLOT_GONE = () => apiError(409, 'SLOT_UNAVAILABLE', 'Ce créneau n’est plus disponible.', { slot: 'Choisissez un autre horaire.' })
+
+  const supabase = await createClient()
+  const { data: availability, error: availabilityError } = await supabase
+    .from('availabilities').select('id, is_booked').eq('doctor_id', doctorId).eq('start_time', new Date(slotMs).toISOString()).maybeSingle()
+  if (availabilityError) return unavailable()
+  if (!availability) return SLOT_GONE()
+
+  // Double envoi : si ce patient retient déjà ce créneau (en attente de paiement), on renvoie la même réservation.
+  const { data: existing } = await supabase
+    .from('appointments').select('id').eq('availability_id', availability.id).eq('patient_id', session.id).eq('status', 'en_attente').maybeSingle()
+  let bookingId = existing?.id as string | undefined
+
+  if (!bookingId) {
+    if (availability.is_booked) return SLOT_GONE()
+    const { data, error } = await supabase.rpc('book_appointment', { p_availability_id: availability.id })
+    if (error) {
+      const failure = mapRpcError(error)
+      if (!failure) return unavailable()
+      return failure.status === 403 ? apiError(403, failure.code, failure.message) : apiError(409, 'SLOT_UNAVAILABLE', failure.message, { slot: 'Choisissez un autre horaire.' })
+    }
+    bookingId = data as string
+  }
+
+  try {
+    const [booking] = await loadBookings(session, bookingId)
+    return booking ? apiJson(booking, 201) : unavailable()
+  } catch { return unavailable() }
+}

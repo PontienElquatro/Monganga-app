@@ -184,3 +184,21 @@ test('ordonnances : première ligne = médicament, reste = consignes', () => {
 test('notifications : champs renommés', () => {
   assert.deepEqual(toApiNotification({ id: 'n', title: 'T', body: null, is_read: false, created_at: '2026-10-12T08:00:00Z' }), { id: 'n', title: 'T', message: '', read: false, createdAt: '2026-10-12T08:00:00.000Z' })
 })
+
+import { mapRpcError } from '../lib/api/rpc-errors.ts'
+
+test('RPC : messages de Junior -> erreurs HTTP du contrat', () => {
+  const raise = (message: string) => mapRpcError({ code: 'P0001', message })
+  assert.deepEqual(raise('Rendez-vous introuvable'), { status: 404, code: 'NOT_FOUND', message: 'Rendez-vous introuvable' })
+  assert.equal(raise('Ce rendez-vous ne vous appartient pas')?.status, 403)
+  assert.equal(raise('Seul un patient peut réserver un rendez-vous')?.status, 403)
+  assert.equal(raise('Vous n\'êtes pas autorisé à annuler ce rendez-vous')?.status, 403)
+  assert.equal(raise('Annulation impossible à moins de 24h du rendez-vous')?.status, 409)
+  assert.equal(raise('Ce créneau vient d\'être réservé par quelqu\'un d\'autre')?.status, 409)
+})
+test('RPC : erreur technique non traduite (aucun détail divulgué)', () => {
+  assert.equal(mapRpcError({ code: '42501', message: 'permission denied for table payments' }), null)
+  assert.equal(mapRpcError({ code: 'PGRST301', message: 'JWT expired' }), null)
+  assert.equal(mapRpcError(null), null)
+  assert.equal(mapRpcError({ code: 'P0001', message: '  ' }), null)
+})
