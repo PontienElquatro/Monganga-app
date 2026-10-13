@@ -53,3 +53,40 @@ test('identifiant : email, téléphone, rejets', () => {
   assert.equal(classifyIdentifier(''), null)
   assert.equal(classifyIdentifier('a@b'), null)
 })
+
+import { firstSlotByDoctor, initials, toApiDoctor, toApiSlot, toCents, UUID_RE } from '../lib/api/doctors.ts'
+
+test('médecins : honoraires en centimes', () => {
+  assert.equal(toCents('20.00'), 2000)
+  assert.equal(toCents(12.5), 1250)
+  assert.equal(toCents(null), 0)
+  assert.equal(toCents(-3), 0)
+})
+test('médecins : initiales sans « Dr »', () => {
+  assert.equal(initials('Dr Jean Ilunga'), 'JI')
+  assert.equal(initials('Aline'), 'A')
+})
+test('médecins : Doctor ne contient aucune donnée privée ni valeur inventée', () => {
+  const slot = { id: 's', doctor_id: 'd', start_time: '2026-10-20T09:00:00+00:00', end_time: '2026-10-20T09:45:00+00:00' }
+  const doc = toApiDoctor({ id: 'd', full_name: 'Dr Jean Ilunga', specialty: 'Cardiologie', bio: null, consultation_fee: '25.00' }, slot)
+  assert.equal(doc.priceCents, 2500)
+  assert.equal(doc.durationMinutes, 45)
+  assert.equal(doc.nextSlot, '2026-10-20T09:00:00.000Z')
+  assert.equal(doc.rating, null)
+  assert.deepEqual(Object.keys(doc).filter(k => /mail|phone|tel/i.test(k)), [])
+})
+test('créneaux : format et premier créneau par médecin', () => {
+  const rows = [
+    { id: 'a', doctor_id: 'd1', start_time: '2026-10-20T09:00:00Z', end_time: '2026-10-20T09:30:00Z' },
+    { id: 'b', doctor_id: 'd1', start_time: '2026-10-20T10:00:00Z', end_time: '2026-10-20T10:30:00Z' },
+    { id: 'c', doctor_id: 'd2', start_time: '2026-10-21T09:00:00Z', end_time: '2026-10-21T09:30:00Z' },
+  ]
+  const first = firstSlotByDoctor(rows)
+  assert.equal(first.get('d1')?.id, 'a')
+  assert.equal(first.get('d2')?.id, 'c')
+  assert.deepEqual(toApiSlot(rows[0]), { id: 'a', doctorId: 'd1', start: '2026-10-20T09:00:00.000Z', durationMinutes: 30, booked: false })
+})
+test('médecins : identifiant non-UUID refusé', () => {
+  assert.equal(UUID_RE.test('ilunga'), false)
+  assert.equal(UUID_RE.test('0b0e9a0e-2f0c-4c3a-9d2e-1f6a3b7c8d90'), true)
+})
