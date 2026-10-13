@@ -90,3 +90,32 @@ test('médecins : identifiant non-UUID refusé', () => {
   assert.equal(UUID_RE.test('ilunga'), false)
   assert.equal(UUID_RE.test('0b0e9a0e-2f0c-4c3a-9d2e-1f6a3b7c8d90'), true)
 })
+
+import { validateRegistration } from '../lib/api/register.ts'
+
+const goodReg = { name: ' Aline Kabila ', email: ' Aline@Mail.CD ', phone: '+243 81 234 5678', password: 'Test12345', consent: true }
+test('inscription : données valides normalisées', () => {
+  const r = validateRegistration(goodReg)
+  assert.equal(r.ok, true)
+  if (r.ok) assert.deepEqual(r.value, { name: 'Aline Kabila', email: 'aline@mail.cd', phone: '+243812345678', password: 'Test12345', consent: true })
+})
+test('inscription : téléphone facultatif', () => {
+  const r = validateRegistration({ ...goodReg, phone: '' })
+  assert.equal(r.ok && r.value.phone, null)
+})
+test('inscription : email obligatoire, mot de passe fort, consentement', () => {
+  for (const [patch, field] of [
+    [{ email: '' }, 'email'], [{ email: 'abc' }, 'email'], [{ password: 'faible' }, 'password'],
+    [{ password: 'sansmajuscule1' }, 'password'], [{ consent: false }, 'consent'], [{ consent: 'true' }, 'consent'],
+    [{ name: '  ' }, 'name'], [{ phone: 'abc' }, 'phone'],
+  ] as const) {
+    const r = validateRegistration({ ...goodReg, ...patch })
+    assert.equal(r.ok, false)
+    if (!r.ok) assert.ok(field in r.fields, field)
+  }
+  assert.equal(validateRegistration(null).ok, false)
+})
+test('inscription : un rôle envoyé par le navigateur est ignoré', () => {
+  const r = validateRegistration({ ...goodReg, role: 'admin' })
+  assert.equal(r.ok && 'role' in r.value, false)
+})

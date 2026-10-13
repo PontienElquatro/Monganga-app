@@ -41,6 +41,12 @@ export function classifyIdentifier(raw: string): { kind: 'email'; value: string 
   const value = raw.trim()
   if (!value || value.length > 254) return null
   if (value.includes('@')) return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? { kind: 'email', value: value.toLowerCase() } : null
-  const digits = value.replace(/[\s().-]/g, '')
-  return /^\+?[0-9]{9,15}$/.test(digits) ? { kind: 'phone', value: digits } : null
+  const digits = normalizePhone(value)
+  return digits ? { kind: 'phone', value: digits } : null
+}
+
+/** Numéro stocké et recherché sous une seule forme : sans espaces ni ponctuation, « + » conservé. */
+export function normalizePhone(raw: string): string | null {
+  const digits = raw.replace(/[\s().-]/g, '')
+  return /^\+?[0-9]{9,15}$/.test(digits) ? digits : null
 }

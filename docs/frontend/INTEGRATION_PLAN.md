@@ -22,7 +22,7 @@ Règles : service_role côté serveur uniquement, rôle toujours lu en base, CSR
 | # | Module | Routes | État |
 |---|---|---|---|
 | 0 | Intégration du front, config, proxy.ts | — | ✅ |
-| 1 | Authentification | `GET /auth/csrf`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout` | ✅ code + tests (à valider avec le vrai Supabase) |
+| 1 | Authentification | `GET /auth/csrf`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`, `POST /auth/register/patient` | ✅ code + tests (à valider avec le vrai Supabase) |
 | 2 | Annuaire médecins | `GET /doctors`, `GET /doctors/{id}/slots` | ✅ code + tests (à valider avec le vrai Supabase) |
 | 3 | Réservation + paiement mock | `/bookings*` | ⏳ branche `back-end` à fusionner. `appointments` ne s'écrit **jamais** en direct : uniquement via les RPC `book_appointment`, `pay_reservation_mock`, `refuse_appointment`, `cancel_appointment` (README back-end §7) |
 | 4 | Agenda / disponibilités médecin | `/doctors/me/availability*` | ⏳ |
@@ -37,8 +37,11 @@ pour le contrat HTTP du front.
 
 ## Écarts connus à trancher avec Junior / le client
 
-- **Inscription et OTP** : le front inscrit par téléphone + OTP ; le backend est email + mot de passe. Les routes
-  `/auth/register/patient`, `/verify-otp`, `/forgot-password`… restent en 501 tant que ce n'est pas décidé.
+- **Inscription** (décision du 13/10) : email + mot de passe obligatoires, téléphone facultatif, **sans OTP** (README backend §9.4).
+  Mode `api` uniquement : le mode démo garde son parcours OTP. Si la confirmation d'email est active dans Supabase, le compte est
+  créé mais inactif jusqu'au clic sur le lien ; sinon la session s'ouvre tout de suite. Le lien de confirmation renvoie vers le
+  « Site URL » configuré dans Supabase (Authentication > URL Configuration) : à régler avec Junior.
+  `/auth/verify-otp`, `/resend-otp`, `/forgot-password`, `/reset-password` restent en 501.
 - **Connexion par téléphone** : résolue côté serveur via `profiles.phone` → email (client admin). Format du numéro à confirmer.
 - **« Se souvenir de moi »** : ignoré pour l'instant (durée des cookies Supabase par défaut).
 - **Annuaire** : `doctors_public` n'a ni `commune`, ni `languages`, ni note. `GET /doctors` renvoie `commune: ""`,

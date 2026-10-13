@@ -42,9 +42,19 @@
     };
     tabs.forEach((tab,i)=>{tab.onclick=()=>choose(tab);tab.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=tabs[e.key==='Home'?0:e.key==='End'?tabs.length-1:(i+1)%tabs.length];choose(next);next.focus();}};});
     if(!A.isConfigured())$('#form-patient .otp-notice span').textContent='Démo : le code de vérification sera affiché à l’étape suivante. Aucun SMS ne sera envoyé.';
+    if(A.isConfigured()){
+      // Backend réel : email obligatoire, téléphone facultatif, validation par le lien envoyé par email (pas d'OTP).
+      $('#email').required=true;$('#phone').required=false;
+      $('label[for="email"]').textContent='Email';$('label[for="phone"]').textContent='Téléphone (optionnel)';
+      $('#form-patient .otp-notice span').textContent='Vous recevrez un email pour confirmer votre adresse.';
+    }
     U.bindForm('register-form',async p=>{
-      const challenge=await D.register({name:`${p.firstName.trim()} ${p.lastName.trim()}`,email:p.email.trim(),phone:p.phone.trim(),password:p.password,consent:p.consent});
-      sessionStorage.setItem('monganga-challenge',JSON.stringify(challenge));U.go('auth/verify.html');
+      const result=await D.register({name:`${p.firstName.trim()} ${p.lastName.trim()}`,email:p.email.trim(),phone:p.phone.trim(),password:p.password,consent:p.consent});
+      if(A.isConfigured()){
+        if(result.signedIn){A.setSession(result.session);U.go(`${result.session.role}/dashboard.html`);return;}
+        U.render(`${title('Vérifiez votre email','Un lien de confirmation vient de vous être envoyé. Cliquez dessus pour activer votre compte, puis connectez-vous.')}<a href="login.html" class="btn btn-primary btn-lg btn-block">Aller à la connexion</a>`);return;
+      }
+      sessionStorage.setItem('monganga-challenge',JSON.stringify(result));U.go('auth/verify.html');
     });
   };
   U.pages.verify=async()=>{

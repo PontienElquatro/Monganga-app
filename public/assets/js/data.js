@@ -288,10 +288,12 @@
     if (!u) fail('Choisissez un compte de démonstration.'); return A.setSession(u);
   }
   async function register(p) {
-    if (!p.consent || (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))) fail('Vérifiez votre email et votre consentement.');
+    // Mode API : email obligatoire, téléphone facultatif, pas d'OTP (backend email + mot de passe).
+    const api = A.isConfigured();
+    if (!p.consent || (api && !p.email) || (p.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email))) fail('Vérifiez votre email et votre consentement.');
     if (!/^(?=.*[A-Z])(?=.*\d).{8,128}$/.test(p.password)) fail('Mot de passe : 8 caractères minimum, une majuscule et un chiffre.');
-    if (!/^\+?[0-9 ()-]{9,20}$/.test(p.phone)) fail('Téléphone invalide.');
-    if (A.isConfigured()) return A.request('/auth/register/patient', { method: 'POST', body: p });
+    if ((!api || p.phone) && !/^\+?[0-9 ()-]{9,20}$/.test(p.phone)) fail('Téléphone invalide.');
+    if (api) return A.request('/auth/register/patient', { method: 'POST', body: p });
     // Le mot de passe est supprimé avant toute persistance de la simulation.
     const challenge = { id: id('challenge'), name: requireText(p.name,'Nom',120), email: p.email || '', phone: p.phone, expiresAt: Date.now()+300000, attempts: 0, resendAt: Date.now()+60000 };
     root.sessionStorage.setItem('monganga-demo-otp', JSON.stringify(challenge)); return { challengeId: challenge.id, expiresAt: challenge.expiresAt, resendAt: challenge.resendAt, demo: true };
