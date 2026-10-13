@@ -1,0 +1,212 @@
+[
+  {
+    "source": "/admin/dashboard.html",
+    "destination": "/admin/dashboard",
+    "permanent": true
+  },
+  {
+    "source": "/admin/reports.html",
+    "destination": "/admin/reports",
+    "permanent": true
+  },
+  {
+    "source": "/admin/transactions.html",
+    "destination": "/admin/transactions",
+    "permanent": true
+  },
+  {
+    "source": "/admin/users.html",
+    "destination": "/admin/users",
+    "permanent": true
+  },
+  {
+    "source": "/admin/validations.html",
+    "destination": "/admin/validations",
+    "permanent": true
+  },
+  {
+    "source": "/auth/candidature.html",
+    "destination": "/public/candidature",
+    "permanent": true
+  },
+  {
+    "source": "/auth/candidature",
+    "destination": "/public/candidature",
+    "permanent": true
+  },
+  {
+    "source": "/auth/forgot.html",
+    "destination": "/auth/forgot",
+    "permanent": true
+  },
+  {
+    "source": "/auth/login.html",
+    "destination": "/auth/login",
+    "permanent": true
+  },
+  {
+    "source": "/auth/register.html",
+    "destination": "/auth/register",
+    "permanent": true
+  },
+  {
+    "source": "/auth/reset.html",
+    "destination": "/auth/reset",
+    "permanent": true
+  },
+  {
+    "source": "/auth/verify.html",
+    "destination": "/auth/verify",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/agenda.html",
+    "destination": "/doctor/agenda",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/consult.html",
+    "destination": "/doctor/consult",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/dashboard.html",
+    "destination": "/doctor/dashboard",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/demandes.html",
+    "destination": "/doctor/demandes",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/dispo.html",
+    "destination": "/doctor/dispo",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/gains.html",
+    "destination": "/doctor/gains",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/ordonnances.html",
+    "destination": "/doctor/ordonnances",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/patients.html",
+    "destination": "/doctor/patients",
+    "permanent": true
+  },
+  {
+    "source": "/doctor/profile.html",
+    "destination": "/doctor/profile",
+    "permanent": true
+  },
+  {
+    "source": "/index.html",
+    "destination": "/",
+    "permanent": true
+  },
+  {
+    "source": "/patient/consult.html",
+    "destination": "/patient/consult",
+    "permanent": true
+  },
+  {
+    "source": "/patient/dashboard.html",
+    "destination": "/patient/dashboard",
+    "permanent": true
+  },
+  {
+    "source": "/patient/doctor.html",
+    "destination": "/patient/doctor",
+    "permanent": true
+  },
+  {
+    "source": "/patient/history.html",
+    "destination": "/patient/history",
+    "permanent": true
+  },
+  {
+    "source": "/patient/payment.html",
+    "destination": "/patient/payment",
+    "permanent": true
+  },
+  {
+    "source": "/patient/prescription.html",
+    "destination": "/patient/prescription",
+    "permanent": true
+  },
+  {
+    "source": "/patient/profile.html",
+    "destination": "/patient/profile",
+    "permanent": true
+  },
+  {
+    "source": "/patient/search.html",
+    "destination": "/patient/search",
+    "permanent": true
+  },
+  {
+    "source": "/public/candidature.html",
+    "destination": "/public/candidature",
+    "permanent": true
+  },
+  {
+    "source": "/public/canditature.html",
+    "destination": "/public/candidature",
+    "permanent": true
+  },
+  {
+    "source": "/public/canditature",
+    "destination": "/public/candidature",
+    "permanent": true
+  },
+  {
+    "source": "/public/conditions-utilisation.html",
+    "destination": "/public/conditions-utilisation",
+    "permanent": true
+  },
+  {
+    "source": "/public/contact.html",
+    "destination": "/public/contact",
+    "permanent": true
+  },
+  {
+    "source": "/public/doctor.html",
+    "destination": "/public/doctor",
+    "permanent": true
+  },
+  {
+    "source": "/public/doctors.html",
+    "destination": "/public/doctors",
+    "permanent": true
+  },
+  {
+    "source": "/public/faq.html",
+    "destination": "/public/faq",
+    "permanent": true
+  },
+  {
+    "source": "/public/how.html",
+    "destination": "/public/how",
+    "permanent": true
+  },
+  {
+    "source": "/public/mentions-legales.html",
+    "destination": "/public/mentions-legales",
+    "permanent": true
+  },
+  {
+    "source": "/public/politique-confidentialite.html",
+    "destination": "/public/politique-confidentialite",
+    "permanent": true
+  },
+  {
+    "source": "/public/pricing.html",
+    "destination": "/public/pricing",
+    "permanent": true
+  }
+]

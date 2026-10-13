@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --test tests/domain.test.cjs tests/api-auth.test.ts",
+    "test:restoration": "node tests/restoration.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "test:api-browser": "node tests/api-browser.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -24,6 +28,12 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "css-tree": "^3.2.1",
+    "jsdom": "^30.1.1",
+    "playwright": "1.63.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
   }
 }
