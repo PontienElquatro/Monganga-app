@@ -1,233 +1,115 @@
-# MONGANGA — Plateforme de téléconsultation médicale
+# MONGANGA na Tshombo — plateforme web (v2)
 
-> Projet BisoTech pour Russel Nete Bezo (Kinshasa, RDC).
-> **Backend** (Supabase + Next.js) : fait par Junior. **Frontend / écrans** : Pontien.
-> Ce document est confidentiel (NDA). Dépôt **privé** uniquement.
+Consultation médicale en visio pour Kinshasa. Réalisé par **BisoTech** pour NETE BEZO.
 
----
+- **Patients** : recherche d’un médecin vérifié, réservation avec un acompte de 1 $, solde payé le jour J, visio de 30 minutes, ordonnance PDF avec QR code.
+- **Médecins** : candidature avec pièces justificatives, créneaux, agenda, salle de consultation (notes privées, ordonnance), revenus et versements du samedi.
+- **Administration** (web uniquement) : validation des dossiers, commissions, remboursements, versements, rapports, paramètres.
 
-## 1. Ce qui est déjà prêt / ce que tu dois faire
+Pile technique : Next.js 16 (App Router) · React 19 · TypeScript · Supabase (Postgres, Auth, Storage, Realtime) · Daily.co · Resend · Cloudinary · prestataire de paiement (MaishaPay prévu). Hébergement : Vercel.
 
-| Zone | État | Qui |
-|---|---|---|
-| Base de données, sécurité (RLS), rôles | ✅ Prêt | Junior |
-| Inscription / connexion / déconnexion | ✅ Prêt (email + mot de passe) | Junior |
-| Rôles patient / médecin / admin + protection des pages | ✅ Prêt | Junior |
-| Candidature médecin + validation/rejet par l'admin | ✅ Prêt (écrans de test basiques) | Junior |
-| Liste publique des médecins validés | ✅ Prêt | Junior |
-| **Tous les écrans définitifs (design de la maquette)** | 🔜 **À faire** | **Pontien** |
-| Prise de rendez-vous (créneaux, réservation, annulation) | 🔜 Module suivant | Junior |
-| Visio, ordonnances, notifications | 🔜 Modules suivants | Junior |
-| Paiements (1 $, honoraires, reversements) |  🔜 Modules suivants | Junior |
-
-**Ta mission** : reprendre les écrans de la maquette et les brancher sur le backend, écran par écran, sans casser la sécurité (section 6).
+> **Services en mode test.** Tant que les clés ne sont pas renseignées, les paiements sont simulés, la visio est remplacée par un écran de test et les e-mails sont seulement écrits dans les journaux. Un bandeau jaune le rappelle dans chaque espace. Voir [docs/BRANCHEMENT-API.md](docs/BRANCHEMENT-API.md).
 
 ---
 
-## 2. Stack
+## 1. Démarrer en local
 
-- **Next.js 16** (App Router, Turbopack), **TypeScript**, **Tailwind CSS**
-- **Supabase** : Postgres, Auth, RLS, pg_cron (Edge Functions plus tard)
-- `@supabase/ssr` + `@supabase/supabase-js`
-- ⚠️ Next 16 : le « middleware » s'appelle **`proxy.ts`** et exporte `proxy()` (pas `middleware()`).
-
----
-
-## 3. Démarrage rapide
+Prérequis : Node.js 22.12 ou plus récent, un projet Supabase.
 
 ```bash
-git clone https://github.com/PontienElquatro/Monganga-app.git
-cd Monganga-app
 npm install
+cp .env.example .env.local      # puis remplir les valeurs Supabase
+npm run dev                      # http://localhost:3000
 ```
 
-1. Junior t'envoie **en privé** (WhatsApp/Signal, pas sur GitHub) le fichier `.env.local`.
-2. Place-le **à la racine** du projet (même niveau que `package.json`). Modèle : `.env.example`.
-3. Lance :
+Vérifications : `npm run typecheck`, `npm run lint`, `npm run build`.
 
+## 2. Base de données (Supabase)
+
+Tout est dans `supabase/migrations/` (à exécuter **dans l’ordre**, sur un projet **neuf**) :
+
+| Fichier | Contenu |
+|---|---|
+| `…0001_schema.sql` | Tables, types, paramètres par défaut |
+| `…0002_securite.sql` | Création du profil à l’inscription, règles d’accès (RLS) sur toutes les tables, droits par colonne |
+| `…0003_fonctions.sql` | Toute la logique métier : réservation, paiements, annulations, absences, consultation, ordonnance, répartition 70/30, versements, tâche périodique `tick()` |
+| `…0004_stockage_temps_reel_cron.sql` | Espaces de stockage privés, temps réel, tâche pg_cron (chaque minute) |
+
+Deux façons de les appliquer :
+- **Supabase CLI** : `supabase link --project-ref <ref>` puis `supabase db push` ;
+- **ou** l’éditeur SQL du tableau de bord : coller chaque fichier, dans l’ordre, et exécuter.
+
+Tests automatiques (82 vérifications, sur un PostgreSQL 16 local, sans toucher à Supabase) :
 ```bash
-npm run dev
+PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres npm run test:db
 ```
 
-Ouvre http://localhost:3000.
+### Réglages Supabase à faire une fois
 
-**Vérifie que `.env.local` est ignoré par git** : `git check-ignore .env.local` doit afficher `.env.local`.
+1. **Authentication → URL Configuration** : *Site URL* = l’adresse du site (ex. `https://monganga.vercel.app`) ; ajouter `https://<site>/auth/confirm` dans *Redirect URLs* (et `http://localhost:3000/auth/confirm` pour le développement).
+2. **Authentication → Email Templates** : remplacer le lien des modèles par la version « token_hash » (fonctionne sur tous les appareils) :
+   - *Confirm signup* : `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email`
+   - *Reset password* : `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
+3. **Authentication → SMTP** : brancher Resend (ou un autre SMTP) pour que les e-mails de confirmation partent depuis l’adresse MONGANGA (le SMTP par défaut de Supabase est très limité).
+4. **Database → Extensions** : vérifier que `pg_cron` est activé (la migration 4 planifie `tick()` chaque minute). Activer aussi `pg_net` pour l’étape 5.
+5. **Envoi régulier des e-mails** (recommandé) : dans l’éditeur SQL, avec la vraie adresse et le vrai secret :
+   ```sql
+   select cron.schedule('monganga-emails', '*/5 * * * *', $$
+     select net.http_get(
+       url := 'https://<site>/api/cron',
+       headers := jsonb_build_object('Authorization', 'Bearer <CRON_SECRET>')
+     )
+   $$);
+   ```
+   (Vercel appelle aussi `/api/cron` une fois par jour, voir `vercel.json`. Avec un plan Vercel Pro, on peut passer à `*/5 * * * *`.)
 
-### Comptes de test
-Crée-toi un compte via `/login` (inscription). Par défaut tout nouveau compte est **patient**. Pour tester les rôles médecin/admin, demande à Junior de te promouvoir (c'est volontairement impossible depuis l'app).
+### Premier administrateur
 
-### Base de données
-Déjà installée sur le projet Supabase partagé. Les scripts sont dans `supabase/` pour référence :
-- `01_schema.sql` : tables, enums, RLS, triggers, tâche planifiée.
-- `02_patches.sql` : permissions (GRANT), vue `doctors_public`, correctifs de sécurité.
+Personne ne peut devenir administrateur depuis le site. Créer un compte patient normal, confirmer l’e-mail, puis dans l’éditeur SQL :
+```sql
+update public.profiles set role = 'admin' where email = 'adresse@exemple.com';
+```
 
-Ne les relance **pas** sur le projet partagé. Toute modification de la base passe par Junior.
+## 3. Variables d’environnement
 
----
+Voir `.env.example` (aucune vraie valeur dans le dépôt). Sur Vercel : *Project → Settings → Environment Variables*.
 
-## 4. Structure du dépôt
+| Variable | Obligatoire | Rôle |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | oui | Adresse publique (liens des e-mails, QR code des ordonnances) |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | oui | Connexion Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | oui | **Serveur uniquement** : webhooks, tâche planifiée, e-mails |
+| `CRON_SECRET` | oui | Protège `/api/cron` |
+| `PAYMENT_PROVIDER` | oui | `test` (simulation) ou `maishapay` |
+| `DAILY_API_KEY`, `DAILY_DOMAIN` | non | Visio réelle |
+| `RESEND_API_KEY`, `EMAIL_FROM` | non | E-mails de notification |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | non | Photos de profil |
+
+## 4. Organisation du code
 
 ```
-proxy.ts                      # Rafraîchit la session à chaque requête (ne pas supprimer)
-lib/supabase/
-  client.ts                   # Client navigateur (composants "use client")
-  server.ts                   # Client serveur (Server Components / Actions)
-  middleware.ts               # Logique de session utilisée par proxy.ts
-  admin.ts                    # Client service_role (SERVEUR UNIQUEMENT)
-  get-user.ts                 # getCurrentUser() : utilisateur + rôle
-  require-role.ts             # requireRole(['admin']) : protège une page
 app/
-  auth/actions.ts             # signUp / signIn / signOut (Server Actions)
-  login/page.tsx              # Écran connexion/inscription (test)
-  admin/page.tsx              # Tableau de bord admin (test)
-  admin/medecins/             # Valider / rejeter les candidatures
-  medecin/candidature/        # Formulaire de candidature médecin
-  medecins/page.tsx           # Liste publique des médecins
-supabase/                     # Scripts SQL (référence)
+  (public)/        accueil, médecins, tarifs (sans prix), FAQ, pages légales, vérification d’ordonnance
+  (auth)/          connexion, inscription patient / médecin, dossier de candidature, simulateur de paiement
+  patient/         tableau de bord, recherche, réservation, paiement, RDV, salle, ordonnances, profil
+  medecin/         tableau de bord, agenda, disponibilités, patients, salle, ordonnances, revenus, profil
+  admin/           vue d’ensemble, validations, médecins, utilisateurs, transactions, versements, rapports, paramètres
+  notifications/   commun à tous les rôles
+  api/             webhook de paiement, tâche planifiée, PDF d’ordonnance, exports CSV
+components/        interface (coques, formulaires, salle de consultation…)
+lib/               accès aux données, règles d’affichage, services externes (lib/services)
+supabase/          migrations SQL et tests
 ```
 
-Les écrans « test » existants sont **fonctionnels mais sans design** : tu les remplaces visuellement en gardant les Server Actions.
+Principes :
+- **La base décide.** Chaque règle (montants, délais, droits) est vérifiée dans Postgres ; l’écran n’est qu’une vitrine. Les montants sont en **centimes de dollar**, les heures affichées en **heure de Kinshasa**.
+- **Confidentialité.** Les patients ne voient jamais les coordonnées des médecins ; les médecins ne voient pas la commission ; l’administration n’a pas accès aux ordonnances, notes ni messages ; les notes de qualité ne sont visibles que par l’administration. Ordonnances, messages, notes et documents sont supprimés 30 jours après la consultation.
+- **La clé `service_role`** n’est utilisée que côté serveur (`lib/supabase/admin.ts`), jamais dans le navigateur.
 
----
+## 5. Mise en ligne (Vercel)
 
-## 5. Utiliser le backend dans tes écrans
+1. Importer le dépôt sur Vercel (framework Next.js détecté).
+2. Renseigner les variables d’environnement.
+3. Déployer, puis reporter l’adresse obtenue dans Supabase (Site URL, Redirect URLs) et dans `NEXT_PUBLIC_SITE_URL`.
 
-### Savoir qui est connecté
-```ts
-import { getCurrentUser } from '@/lib/supabase/get-user'
-const user = await getCurrentUser()   // null si non connecté, sinon { id, email, role, ... }
-```
-
-### Protéger une page par rôle
-```ts
-import { requireRole } from '@/lib/supabase/require-role'
-await requireRole(['medecin'])        // redirige si le rôle ne correspond pas
-```
-
-### Connexion / inscription / déconnexion
-Utilise les Server Actions de `app/auth/actions.ts` comme `action` d'un `<form>` :
-```tsx
-<form action={signIn}>
-  <input name="email" type="email" required />
-  <input name="password" type="password" required />
-  <button>Se connecter</button>
-</form>
-```
-Les erreurs reviennent en `/login?error=...` : affiche-les.
-
-### Lire des données
-- **Côté serveur** (recommandé) : `const supabase = await createClient()` depuis `lib/supabase/server.ts`.
-- **Côté navigateur** : `createClient()` depuis `lib/supabase/client.ts`.
-- La sécurité est assurée par la base (RLS) : si une requête renvoie vide, c'est souvent que la RLS refuse, pas un bug.
-
-### Recherche de médecins
-```ts
-const { data } = await supabase.from('doctors_public').select('*')
-```
-**Toujours `doctors_public`**, jamais `profiles` (voir règles).
-
----
-
-## 6. Règles à respecter (important)
-
-1. **`SUPABASE_SERVICE_ROLE_KEY` : serveur seulement.** Jamais dans un composant `"use client"`, jamais avec `NEXT_PUBLIC_`, jamais commitée.
-2. **Ne jamais commiter `.env.local`.**
-3. **Rôle et statut médecin** ne se changent **que** côté serveur avec le client admin (ce qui est déjà fait dans `app/admin/medecins/actions.ts`). Ne tente pas de les modifier depuis le navigateur.
-4. **Recherche de médecins = `doctors_public`.** Aucune coordonnée personnelle du médecin (téléphone, email) ne doit apparaître côté patient (exigence du client).
-5. **Utiliser `getUser()` et non `getSession()`** pour vérifier l'identité côté serveur.
-6. **Ordonnances/documents médicaux** disparaissent **30 jours** après consultation (tâche `pg_cron` quotidienne). Prévois un message clair dans l'UI.
-7. **Le médecin ne voit que sa part** (70 %), jamais la commission de la plateforme ni les chiffres globaux. Le patient **n'a pas** la rubrique « dépenses ce mois ».
-8. **Paiements : mock uniquement.** Ne branche aucun vrai opérateur (pawaPay/SerdiPay…) sans avenant signé.
-9. **Un seul code pour mobile/web** : pense responsive, l'app mobile arrivera ensuite avec le même backend.
-10. **Branches** : ne pousse pas sur `main`. `git checkout -b feature/nom-ecran`, puis Pull Request. Jamais de `git push --force`.
-
----
-
-## 7. Les tables expliquées
-
-| Table / objet | Rôle | Utile pour tes écrans |
-|---|---|---|
-| `profiles` | Un profil par utilisateur (nom, téléphone, avatar, **rôle**). Créé automatiquement à l'inscription (rôle `patient`). | Écran profil, affichage du nom/avatar, menus selon rôle |
-| `doctor_profiles` | Infos pro du médecin : spécialité, bio, **honoraire**, **statut** (`en_attente`/`valide`/`rejete`), motif de rejet, commission (30 %). | Candidature médecin, statut de dossier, fiche médecin |
-| `doctors_public` (vue) | Médecins **validés** sans données privées. | **Recherche, liste, fiche médecin côté patient** |
-| `availabilities` | Créneaux de disponibilité du médecin (pas de chevauchement possible). | Agenda médecin, choix de créneau patient |
-| `appointments` | Rendez-vous patient ↔ médecin, statut, frais de réservation (1 $). | « Mes rendez-vous », réserver, annuler |
-| `consultations` | Déroulé de la téléconsultation (début, fin, lien visio, notes). | Salle de visio, historique médecin |
-| `prescriptions` | Ordonnances, **expirent à +30 jours**. | « Mes ordonnances » |
-| `notifications` | Messages in-app par utilisateur. | Cloche de notifications |
-| `payments` | Paiements (réservation, honoraire). Écriture réservée au serveur. | Lecture du statut de paiement seulement |
-| `ledger_entries` | Écritures comptables 70/30. Serveur uniquement. | Écran « mes gains » du médecin (sa part) |
-| `payouts` | Reversements au médecin (samedi). Serveur uniquement. | Historique des reversements |
-| `webhook_events` | Journal des notifications opérateurs (idempotence). Interne. | Aucun (ne pas toucher) |
-| `current_user_role()` | Fonction : rôle de l'utilisateur courant, utilisée par la RLS. | — |
-| `handle_new_user()` | Trigger : crée le profil à l'inscription. | — |
-
-Tout est protégé par **RLS** : un patient ne voit que ses données, un médecin ses patients/rendez-vous, l'admin ce qui lui est ouvert.
-
----
-
-## 8. Carte des écrans (maquette → code)
-
-Maquette de référence : https://quatro-monganga-app.netlify.app (site **statique**, pas Next.js : les écrans sont à **porter** en composants React/Tailwind).
-
-### Pages publiques
-| Écran maquette | Route Next | Backend |
-|---|---|---|
-| Accueil | `/` | ✅ (remplace la page par défaut) |
-| `/public/how` Comment ça marche | `/comment-ca-marche` | — (statique) |
-| `/public/doctors` Médecins | `/medecins` | ✅ `doctors_public` |
-| `/public/pricing` Tarifs | `/tarifs` | ⚠️ voir §10 |
-| `/public/faq` | `/faq` | — |
-| `/public/contact` | `/contact` | 🔜 |
-| `/public/candidature` | `/medecin/candidature` | ✅ (texte seulement, upload documents 🔜) |
-| `/public/conditions-utilisation`, `politique-confidentialite`, `mentions-legales` | mêmes noms en français | — (statique) |
-
-### Authentification
-| Maquette | Route Next | Backend |
-|---|---|---|
-| `/auth/login`, `/auth/register` | `/login` (ou adapte, voir §9) | ✅ email + mot de passe |
-
-### Espaces connectés (selon rôle)
-| Espace | Écrans | Backend |
-|---|---|---|
-| Patient | Tableau de bord, rechercher un médecin, réserver, mes rendez-vous, visio, mes ordonnances, profil | 🔜 appointments / consultations / prescriptions |
-| Médecin | Tableau de bord, agenda & disponibilités, rendez-vous, visio, mes gains (sa part), profil | 🔜 |
-| Admin | Candidatures médecins, utilisateurs, suivi | ✅ candidatures (`/admin/medecins`), reste 🔜 |
-
-Légende : ✅ prêt · 🔜 module à venir (Junior te prévient) · 
-Commence par ce qui est ✅ : accueil, pages statiques, login/inscription, liste médecins, candidature, admin candidatures.
-
----
-
-## 9. Intégrer le site existant
-
-1. Mets le site de la maquette dans un dossier **`maquette/`** (référence, hors build) : il ne doit pas être importé par Next.
-2. Porte les écrans **un par un** vers `app/...` en composants Next/Tailwind, sur une branche par écran.
-3. **Routes** : la maquette utilise `/auth/login` ; le backend `/login`. Soit tu crées `app/auth/login/page.tsx` et tu mets à jour les `redirect()` de `app/auth/actions.ts`, soit tu gardes `/login`. Garde la cohérence partout.
-4. **Inscription** : la maquette montre téléphone + OTP ; le backend est email + mot de passe pour l'instant. Garde email + mot de passe en attendant la décision du client.
-5. Après connexion, redirige selon le rôle : patient → espace patient, médecin → espace médecin, admin → `/admin`.
-
----
-
-## 10. Points ouverts avec le client (ne pas figer l'UI dessus)
-
-- **Tarifs** : la maquette affiche 20 $/30 $ fixes, mais le client dit que chaque médecin fixe ses honoraires → afficher `consultation_fee` du médecin.
-- Délai d'annulation, motif de refus, historique visible au médecin, accès admin aux ordonnances, nouvelle candidature après rejet, tolérance en cas d'absence.
-- Conservation 1 mois vs « historique/ordonnances » du devis.
-- Devise (FC/USD), frais de transfert, montant « somme rentrante 10 $ ».
-- Upload des pièces de candidature (CNI, diplôme, Ordre, CV) → Supabase Storage, pas encore fait.
-
----
-
-## 11. Checklist avant chaque Pull Request
-
-- [ ] `npm run build` passe sans erreur
-- [ ] Aucun secret dans le code ni dans le diff (`git diff` relu)
-- [ ] `.env.local` non suivi par git
-- [ ] Testé avec 3 comptes : patient, médecin, admin
-- [ ] Aucune donnée privée de médecin visible côté patient
-- [ ] Responsive (mobile d'abord)
-
-## 12. Contact
-
-Junior (BisoTech) pour la base de données, les accès, les promotions de rôle et toute décision produit. En cas de doute sur la sécurité : **demande avant de coder**.
+Documents utiles : [docs/BRANCHEMENT-API.md](docs/BRANCHEMENT-API.md) (brancher les services réels) · [docs/TESTS.md](docs/TESTS.md) (parcours de test).
