@@ -10,8 +10,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // Le logo est lu sur le disque pour le PDF de l'ordonnance.
-  outputFileTracingIncludes: { "/api/ordonnances/[id]/pdf": ["./public/logo/monganga-icon-192.png"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

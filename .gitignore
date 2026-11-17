@@ -23,3 +23,9 @@ next-env.d.ts
 .vercel
 supabase/.branches
 supabase/.temp
+
+# cloudflare (OpenNext)
+.open-next/
+.wrangler/
+.dev.vars
+cloudflare-env.d.ts

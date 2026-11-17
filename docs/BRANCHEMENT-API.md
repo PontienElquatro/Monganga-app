@@ -9,7 +9,7 @@ La plateforme fonctionne entièrement en **mode test**. Brancher un service revi
 | E-mails Resend | Les e-mails sont écrits dans les journaux du serveur | `RESEND_API_KEY`, `EMAIL_FROM` (domaine vérifié chez Resend) |
 | Photos Cloudinary | Bouton « Ajouter une photo » désactivé | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` |
 
-Après chaque changement de variable sur Vercel : **redéployer**.
+Après chaque changement de variable sur Cloudflare : **redéployer** (les variables `NEXT_PUBLIC_*` doivent aussi être présentes au moment du build).
 
 ---
 

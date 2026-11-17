@@ -1,8 +1,7 @@
 import 'server-only'
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { readFile } from 'node:fs/promises'
-import path from 'node:path'
+import { LOGO_ICON_PNG_BASE64 } from '@/lib/assets/logo-icon'
 import type { PrescriptionItem } from '@/lib/types'
 
 export interface PrescriptionPdfInput {
@@ -56,7 +55,7 @@ export async function buildPrescriptionPdf(d: PrescriptionPdfInput): Promise<Uin
   page.drawRectangle({ x: 0, y: 762, width, height: 80, color: NAVY })
   page.drawRectangle({ x: 0, y: 758, width, height: 4, color: YELLOW })
   try {
-    const logo = await pdf.embedPng(await readFile(path.join(process.cwd(), 'public/logo/monganga-icon-192.png')))
+    const logo = await pdf.embedPng(Buffer.from(LOGO_ICON_PNG_BASE64, 'base64'))
     page.drawRectangle({ x: 36, y: 778, width: 48, height: 48, color: rgb(1, 1, 1) })
     page.drawImage(logo, { x: 38, y: 780, width: 44, height: 44 })
   } catch { /* logo facultatif */ }

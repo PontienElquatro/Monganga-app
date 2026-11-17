@@ -7,11 +7,11 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 /**
- * Tâche planifiée (Vercel Cron, toutes les 5 minutes) :
+ * Tâche planifiée (appelée toutes les 5 minutes par pg_cron + pg_net, voir README) :
  *  1. tick() en base (si pg_cron n'est pas actif sur le projet Supabase) ;
  *  2. envoi des e-mails des notifications en attente ;
  *  3. suppression des documents de consultation de plus de 30 jours (Storage + base).
- * Protégée par CRON_SECRET (Vercel envoie « Authorization: Bearer <CRON_SECRET> »).
+ * Protégée par CRON_SECRET (l'appel envoie « Authorization: Bearer <CRON_SECRET> »).
  */
 export async function GET(request: Request) {
   const secret = env.cronSecret()

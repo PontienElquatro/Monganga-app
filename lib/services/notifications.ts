@@ -35,7 +35,7 @@ export async function flushEmailQueue(limit = 40): Promise<number> {
 
 /**
  * Version « sans attendre » : l'envoi part après la réponse au navigateur
- * (after() garde la fonction active sur Vercel) et n'échoue jamais l'action en cours.
+ * (after() garde le travail actif après la réponse) et n'échoue jamais l'action en cours.
  */
 export function flushEmailsSoon(): void {
   after(async () => {
