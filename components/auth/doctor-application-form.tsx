@@ -183,11 +183,12 @@ export function DoctorApplicationForm({ mode, userId, defaults, existingKinds = 
           return (
             <label className={`doc-row${has ? ' done' : ''}`} key={doc.kind}>
               <Icon name={has ? 'circle-check' : 'file-up'} />
-              <span style={{ flex: 1 }}>
+              <span className="doc-text">
                 <strong>{doc.label}{needDoc(doc.kind, doc.required) ? ' *' : ''}</strong>
                 <small>{files[doc.kind]?.name ?? (existingKinds.includes(doc.kind) ? 'Déjà dans votre dossier' : doc.hint)}</small>
               </span>
-              <input type="file" name={`doc_${doc.kind}`} accept="application/pdf,image/jpeg,image/png,image/webp"
+              <span className="doc-pick" aria-hidden="true">{has ? 'Remplacer' : 'Choisir'}</span>
+              <input className="sr-only" type="file" name={`doc_${doc.kind}`} accept="application/pdf,image/jpeg,image/png,image/webp"
                      required={needDoc(doc.kind, doc.required)} onChange={(e: ChangeEvent<HTMLInputElement>) => pick(doc.kind, e.target.files?.[0])} />
             </label>
           )

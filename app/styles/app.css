@@ -59,7 +59,13 @@
 .doc-upload label.doc-row { display: flex; gap: 12px; align-items: center; padding: 12px 14px; border: 1.5px dashed var(--border-strong); border-radius: 12px; cursor: pointer; background: var(--surface-2); }
 .doc-upload .doc-row strong { display: block; font-size: 13.5px; }
 .doc-upload .doc-row small { font-size: 11.5px; color: var(--text-3); }
-.doc-upload .doc-row input[type=file] { font-size: 12px; max-width: 220px; }
+.doc-upload label.doc-row { position: relative; min-width: 0; }
+.doc-upload .doc-row > svg { flex-shrink: 0; }
+.doc-upload .doc-text { flex: 1; min-width: 0; }
+.doc-upload .doc-text small { display: block; overflow-wrap: anywhere; line-height: 1.4; }
+.doc-upload .doc-pick { flex-shrink: 0; font-size: 12.5px; font-weight: 700; color: var(--primary); background: var(--surface); border: 1px solid var(--border-strong); border-radius: 9px; padding: 7px 12px; white-space: nowrap; }
+.doc-upload .doc-row:focus-within { outline: 2px solid var(--primary); outline-offset: 2px; }
+.doc-upload .doc-row.done .doc-pick { color: var(--success-text); }
 .doc-upload .doc-row.done { border-style: solid; border-color: var(--success); background: var(--success-bg); }
 @media print { .no-print { display: none !important; } }
 
