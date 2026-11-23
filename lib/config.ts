@@ -15,7 +15,11 @@ export const env = {
   serviceRoleKey: () => required(process.env.SUPABASE_SERVICE_ROLE_KEY, 'SUPABASE_SERVICE_ROLE_KEY'),
   cronSecret: () => process.env.CRON_SECRET || '',
   paymentProvider: (): 'test' | 'maishapay' => (process.env.PAYMENT_PROVIDER === 'maishapay' ? 'maishapay' : 'test'),
-  daily: () => ({ apiKey: process.env.DAILY_API_KEY || '', domain: process.env.DAILY_DOMAIN || '' }),
+  // Tolère les erreurs de copier-coller : espaces, « Bearer » devant la clé, adresse complète pour le domaine.
+  daily: () => ({
+    apiKey: (process.env.DAILY_API_KEY || '').trim().replace(/^Bearer\s+/i, ''),
+    domain: (process.env.DAILY_DOMAIN || '').trim().replace(/^https?:\/\//, '').replace(/\.daily\.co.*$/, '').replace(/\/.*$/, ''),
+  }),
   resend: () => ({ apiKey: process.env.RESEND_API_KEY || '' }),
   cloudinary: () => ({
     cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '',
