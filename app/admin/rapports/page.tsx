@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { kinDayStart, todayKinshasa, usd } from '@/lib/format'
 
 export const metadata: Metadata = { title: 'Rapports' }
@@ -10,6 +11,7 @@ const monthKey = (iso: string) => new Intl.DateTimeFormat('en-CA', { timeZone: '
 const monthLabel = (key: string) => new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${key}-15T00:00:00Z`))
 
 export default async function RapportsPage() {
+  await requireAdmin('finance')
   const supabase = await createClient()
   const today = todayKinshasa()
   const [y, m] = today.split('-').map(Number)

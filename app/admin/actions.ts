@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { friendlyError } from '@/lib/errors'
 import { dollarsToCents, str } from '@/lib/validation'
 import { flushEmailsSoon } from '@/lib/services/notifications'
-import type { ActionState } from '@/lib/types'
+import type { ActionState, AdminRole } from '@/lib/types'
 
 const UUID = /^[0-9a-f-]{36}$/i
 
@@ -104,4 +104,15 @@ export async function updateSettingAction(_: ActionState, fd: FormData): Promise
   if (unit === '%' && n > 100) return { error: 'Un pourcentage ne peut pas dépasser 100 %.' }
   const value = unit === 'usd' ? Math.round(n * 100) : Math.round(n)
   return run('admin_update_setting', { p_key: key, p_value: value }, 'Paramètre enregistré.', ['/'])
+}
+
+// ----- Équipe (super administrateur) -----
+const TEAM_ROLES: AdminRole[] = ['super', 'finance', 'support', 'validation']
+
+export async function setTeamRolesAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const email = str(fd, 'email', 254).toLowerCase()
+  const roles = fd.getAll('roles').map(String).filter((r): r is AdminRole => (TEAM_ROLES as string[]).includes(r))
+  if (!email || !email.includes('@')) return { error: 'Indiquez l’adresse e-mail du compte.' }
+  return run('admin_set_team_roles', { p_email: email, p_roles: roles },
+    roles.length ? 'Rôles enregistrés. Ils s’appliquent à sa prochaine page ouverte.' : 'Cette personne ne fait plus partie de l’équipe.', ['/admin'])
 }

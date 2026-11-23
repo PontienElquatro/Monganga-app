@@ -1,5 +1,6 @@
 import 'server-only'
-import { requireRole } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth'
+import type { AdminRole } from '@/lib/types'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 /**
@@ -7,7 +8,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
  * (commission des médecins). Toujours après vérification du rôle admin.
  * Jamais pour le contenu médical (ordonnances, notes, messages).
  */
-export async function adminReader() {
-  await requireRole('admin')
+export async function adminReader(...roles: AdminRole[]) {
+  await requireAdmin(...roles)
   return createAdminClient()
 }

@@ -34,12 +34,13 @@ Tout est dans `supabase/migrations/` (à exécuter **dans l’ordre**, sur un pr
 | `…0002_securite.sql` | Création du profil à l’inscription, règles d’accès (RLS) sur toutes les tables, droits par colonne |
 | `…0003_fonctions.sql` | Toute la logique métier : réservation, paiements, annulations, absences, consultation, ordonnance, répartition 70/30, versements, tâche périodique `tick()` |
 | `…0004_stockage_temps_reel_cron.sql` | Espaces de stockage privés, temps réel, tâche pg_cron (chaque minute) |
+| `…0005_roles_administration.sql` | Rôles de l’équipe : super, finance, support, validation (droits vérifiés dans la base) |
 
 Deux façons de les appliquer :
 - **Supabase CLI** : `supabase link --project-ref <ref>` puis `supabase db push` ;
 - **ou** l’éditeur SQL du tableau de bord : coller chaque fichier, dans l’ordre, et exécuter.
 
-Tests automatiques (82 vérifications, sur un PostgreSQL 16 local, sans toucher à Supabase) :
+Tests automatiques (117 vérifications, sur un PostgreSQL 16 local, sans toucher à Supabase) :
 ```bash
 PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres npm run test:db
 ```
@@ -66,8 +67,18 @@ PGHOST=127.0.0.1 PGPORT=5432 PGUSER=postgres npm run test:db
 
 Personne ne peut devenir administrateur depuis le site. Créer un compte patient normal, confirmer l’e-mail, puis dans l’éditeur SQL :
 ```sql
-update public.profiles set role = 'admin' where email = 'adresse@exemple.com';
+update public.profiles set role = 'admin', admin_roles = '{super}' where email = 'adresse@exemple.com';
 ```
+Ensuite, ce super administrateur ajoute les autres membres depuis *Administration → Équipe*.
+
+| Rôle | Accès |
+|---|---|
+| Super administrateur | Tout, plus l’équipe, les paramètres et les commissions |
+| Finance | Transactions, remboursements, versements, rendez-vous à trancher, rapports, exports |
+| Support utilisateurs | Utilisateurs, suspension, rendez-vous d’un utilisateur sans montants |
+| Validation des médecins | Dossiers de candidature et pièces justificatives |
+
+Aucun rôle ne donne accès aux ordonnances, notes médicales ou messages de consultation.
 
 ## 3. Variables d’environnement
 

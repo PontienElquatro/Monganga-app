@@ -14,6 +14,8 @@ const MESSAGES: Record<string, string> = {
   MOTIF_OBLIGATOIRE: 'Indiquez un motif.',
   COMMISSION_INVALIDE: 'La commission doit être comprise entre 0 et 100 %.',
   UTILISATEUR_INTROUVABLE: 'Utilisateur introuvable.',
+  COMPTE_MEDECIN: 'Un compte médecin ne peut pas faire partie de l’équipe d’administration. Utilisez une autre adresse e-mail.',
+  DERNIER_SUPER_ADMIN: 'Il doit rester au moins un super administrateur. Nommez-en un autre avant de retirer ce rôle.',
   VALEUR_INVALIDE: 'Valeur invalide.',
   PARAMETRE_INCONNU: 'Paramètre inconnu.',
   TARIF_HORS_LIMITES: 'Le tarif doit être compris entre 5 $ et 500 $.',

@@ -5,6 +5,7 @@ import { ActionForm } from '@/components/ui/action-form'
 import { SubmitButton } from '@/components/ui/form'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { nextSaturday } from '@/lib/doctor'
 import { markPayoutPaidAction, preparePayoutsAction } from '@/app/admin/actions'
 import { dateLong, dateShort, doctorName, payoutLabel, usd } from '@/lib/format'
@@ -19,6 +20,7 @@ interface Row {
 }
 
 export default async function VersementsPage() {
+  await requireAdmin('finance')
   const supabase = await createClient()
   const [{ data }, { data: unpaid }] = await Promise.all([
     supabase.from('payouts')

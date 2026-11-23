@@ -6,6 +6,7 @@ import { ActionForm } from '@/components/ui/action-form'
 import { SubmitButton } from '@/components/ui/form'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { markRefundDoneAction, resolveAppointmentAction } from '@/app/admin/actions'
 import { dateTime, fullName, paymentLabel, usd } from '@/lib/format'
 import type { PaymentKind, PaymentMethod, PaymentStatus } from '@/lib/types'
@@ -30,6 +31,7 @@ const STATUS: Record<PaymentStatus, { label: string; tone: string }> = {
 
 export default async function TransactionsPage({ searchParams }: { searchParams: Promise<{ statut?: string }> }) {
   const { statut } = await searchParams
+  await requireAdmin('finance')
   const supabase = await createClient()
   let payQuery = supabase.from('payments')
     .select('id, kind, amount_cents, method, phone, provider, provider_ref, status, failure_reason, created_at, profiles!inner(first_name, last_name, email), appointments!inner(reference)')

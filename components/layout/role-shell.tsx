@@ -3,7 +3,8 @@ import { redirect } from 'next/navigation'
 import { PatientShell } from './patient-shell'
 import { ProShell } from './pro-shell'
 import { ModeBanner } from './mode-banner'
-import { ADMIN_NAV, DOCTOR_NAV } from './navs'
+import { adminNavFor, DOCTOR_NAV } from './navs'
+import { adminRolesLabel } from '@/lib/admin-roles'
 import { getSession, homeFor } from '@/lib/auth'
 import { unreadCount } from '@/lib/notifications'
 import { doctorName, fullName } from '@/lib/format'
@@ -23,12 +24,12 @@ export async function RoleShell({ children }: { children: React.ReactNode }) {
   return (
     <ProShell
       space={isAdmin ? 'Administration' : 'Espace médecin'}
-      nav={isAdmin ? ADMIN_NAV : DOCTOR_NAV}
+      nav={isAdmin ? adminNavFor(session.profile.admin_roles) : DOCTOR_NAV}
       user={{
         name: isAdmin ? fullName(session.profile) : doctorName({ title: session.doctor?.title, ...session.profile }),
-        detail: isAdmin ? 'Administrateur' : session.doctor?.specialty ?? '',
+        detail: isAdmin ? adminRolesLabel(session.profile.admin_roles) : session.doctor?.specialty ?? '',
         avatar: session.profile.avatar_url,
-        href: isAdmin ? '/admin/parametres' : '/medecin/profil',
+        href: isAdmin ? '/admin' : '/medecin/profil',
       }}
       userId={session.userId}
       unread={unread}

@@ -8,6 +8,7 @@ import { ActionForm } from '@/components/ui/action-form'
 import { SubmitButton } from '@/components/ui/form'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { decideApplicationAction } from '@/app/admin/actions'
 import { DOCUMENT_LABELS, dateLong, fullName, maskAccount, payoutLabel, usd } from '@/lib/format'
 import type { DocumentKind, DoctorProfile, Profile } from '@/lib/types'
@@ -19,6 +20,7 @@ const REQUIRED: DocumentKind[] = ['photo', 'identite', 'diplome', 'ordre', 'cv']
 export default async function ValidationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound()
+  await requireAdmin('validation')
   const supabase = await createClient()
   const [{ data: doctor }, { data: profile }, { data: docs }] = await Promise.all([
     supabase.from('doctor_profiles').select('id, title, specialty, bio, languages, years_experience, commune, fee_cents, status, payout_method, payout_account, payout_holder, admin_message, submitted_at, decided_at').eq('id', id).maybeSingle<DoctorProfile>(),

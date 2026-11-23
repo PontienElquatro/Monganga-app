@@ -7,6 +7,7 @@ import { ConfirmSubmit } from '@/components/ui/confirm-submit'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
 import { adminReader } from '@/lib/admin'
+import { hasAdminRole, requireAdmin } from '@/lib/auth'
 import { setCommissionAction, setSuspendedAction } from '@/app/admin/actions'
 import { doctorName, usd } from '@/lib/format'
 import type { DoctorStatus } from '@/lib/types'
@@ -21,7 +22,12 @@ interface Row {
 export default async function AdminMedecinsPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams
   // La commission n'est lisible qu'avec le client service (jamais exposée au médecin).
-  const admin = await adminReader()
+  const session = await requireAdmin('validation', 'support', 'finance')
+  const canSeeCommission = hasAdminRole(session, 'finance')
+  const canEditCommission = hasAdminRole(session, 'super')
+  const canSeeRatings = hasAdminRole(session, 'validation') || hasAdminRole(session, 'support')
+  const canSuspend = hasAdminRole(session, 'support')
+  const admin = await adminReader('validation', 'support', 'finance')
   const [{ data }, { data: ratings }, { data: done }] = await Promise.all([
     admin.from('doctor_profiles')
       .select('id, title, specialty, fee_cents, commission_rate, status, profiles!inner(first_name, last_name, email, avatar_url, suspended_at)')
@@ -42,12 +48,12 @@ export default async function AdminMedecinsPage({ searchParams }: { searchParams
 
   return (
     <>
-      <PageHeading space="Administration" title="Médecins" description="Commission par médecin, notes des patients (visibles par l’administration seulement) et suspension." />
+      <PageHeading space="Administration" title="Médecins" description="Médecins validés : activité, notes des patients (visibles par l’administration seulement), commission et accès." />
       <form className="inline-form mb-4" method="get"><input className="form-input" name="q" defaultValue={q ?? ''} placeholder="Nom, spécialité, e-mail" aria-label="Rechercher un médecin" /><button className="btn btn-secondary" type="submit">Rechercher</button></form>
       {rows.length ? (
         <div className="table-wrap">
           <table className="data-table">
-            <thead><tr><th>Médecin</th><th>Tarif</th><th>Consultations</th><th>Note moyenne</th><th>Commission</th><th>Compte</th></tr></thead>
+            <thead><tr><th>Médecin</th><th>Tarif</th><th>Consultations</th>{canSeeRatings ? <th>Note moyenne</th> : null}{canSeeCommission ? <th>Commission</th> : null}<th>Compte</th></tr></thead>
             <tbody>
               {rows.map((r) => {
                 const s = stats.get(r.id)
@@ -58,23 +64,27 @@ export default async function AdminMedecinsPage({ searchParams }: { searchParams
                       <div><span className="table-name">{doctorName({ title: r.title, ...r.profiles })}</span><span className="table-sub">{r.specialty}</span></div></div></td>
                     <td>{usd(r.fee_cents)}</td>
                     <td>{consults.get(r.id) ?? 0}</td>
-                    <td>{s ? <span title={`${s.n} avis`}>★ {(s.sum / s.n).toFixed(1).replace('.', ',')} <small className="meta">({s.n})</small></span> : <span className="meta">—</span>}</td>
-                    <td>
-                      <ActionForm action={setCommissionAction} className="inline-form">
-                        <input type="hidden" name="doctor_id" value={r.id} />
-                        <input className="form-input" name="rate" defaultValue={String(r.commission_rate).replace('.', ',')} inputMode="decimal" aria-label="Commission en %" style={{ width: 70 }} /> %
-                        <SubmitButton className="btn btn-ghost btn-sm" pendingLabel="…">OK</SubmitButton>
-                      </ActionForm>
-                    </td>
+                    {canSeeRatings ? <td>{s ? <span title={`${s.n} avis`}>★ {(s.sum / s.n).toFixed(1).replace('.', ',')} <small className="meta">({s.n})</small></span> : <span className="meta">—</span>}</td> : null}
+                    {canSeeCommission ? (
+                      <td>
+                        {canEditCommission ? (
+                          <ActionForm action={setCommissionAction} className="inline-form">
+                            <input type="hidden" name="doctor_id" value={r.id} />
+                            <input className="form-input" name="rate" defaultValue={String(r.commission_rate).replace('.', ',')} inputMode="decimal" aria-label="Commission en %" style={{ width: 70 }} /> %
+                            <SubmitButton className="btn btn-ghost btn-sm" pendingLabel="…">OK</SubmitButton>
+                          </ActionForm>
+                        ) : <span>{String(r.commission_rate).replace('.', ',')} %</span>}
+                      </td>
+                    ) : null}
                     <td>
                       <DoctorBadge status={suspended ? 'suspendu' : r.status} />
-                      <ActionForm action={setSuspendedAction} className="inline-form">
+                      {canSuspend ? <ActionForm action={setSuspendedAction} className="inline-form">
                         <input type="hidden" name="user_id" value={r.id} />
                         <input type="hidden" name="suspend" value={suspended ? 'false' : 'true'} />
                         {suspended
                           ? <SubmitButton className="btn btn-secondary btn-sm" icon="refresh-cw">Réactiver</SubmitButton>
                           : <ConfirmSubmit label="Suspendre" confirmLabel="Confirmer : annuler ses RDV à venir et suspendre" icon="ban" />}
-                      </ActionForm>
+                      </ActionForm> : null}
                     </td>
                   </tr>
                 )

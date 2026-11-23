@@ -2,7 +2,8 @@ import 'server-only'
 import { cache } from 'react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import type { DoctorProfile, Profile, UserRole } from '@/lib/types'
+import type { AdminRole, DoctorProfile, Profile, UserRole } from '@/lib/types'
+import { holdsAdminRole } from '@/lib/admin-roles'
 
 export interface Session {
   userId: string
@@ -45,5 +46,17 @@ export async function requireRole(role: UserRole): Promise<Session> {
   if (session.profile.suspended_at) redirect('/compte-suspendu')
   if (session.profile.role !== role) redirect(homeFor(session))
   if (role === 'medecin' && session.doctor?.status !== 'valide') redirect('/dossier')
+  return session
+}
+
+/** Le membre de l'équipe a-t-il ce rôle (le super administrateur les a tous) ? */
+export function hasAdminRole(session: Session, role: AdminRole): boolean {
+  return session.profile.role === 'admin' && holdsAdminRole(session.profile.admin_roles, role)
+}
+
+/** Exige un administrateur ayant au moins un des rôles donnés ; sinon retour à la vue d'ensemble. */
+export async function requireAdmin(...roles: AdminRole[]): Promise<Session> {
+  const session = await requireRole('admin')
+  if (roles.length && !roles.some((r) => hasAdminRole(session, r))) redirect('/admin')
   return session
 }

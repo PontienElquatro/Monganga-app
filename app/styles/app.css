@@ -107,3 +107,10 @@ fieldset.field { border:0; padding:0; margin:0; }
 
 /* Carte des pages de connexion : toujours claire, même en mode sombre (textes lisibles, comme la maquette). */
 .auth-card { --surface:#fff; --surface-2:#f8fafc; --bg:#f1f5f9; --text:#0f172a; --text-2:#475569; --text-3:#64748b; --border:#e2e8f0; --border-strong:#cbd5e1; --primary-light:#E8F2FB; --primary-soft:#D3E6F6; --danger-bg:#fee2e2; --danger-text:#b91c1c; --info-bg:#dbeafe; --info-text:#1d4ed8; --success-bg:#d1fae5; --success-text:#047857; --warning-bg:#fef3c7; --warning-text:#b45309; --primary-text:#0F6EB9; color:var(--text); color-scheme:light; }
+
+/* Lignes « libellé : valeur » (fiches de l'administration) */
+.muted-row { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:8px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.muted-row:last-child { border-bottom:0; }
+.muted-row > span:first-child { color:var(--text-3); }
+a.table-name { color:var(--primary-text, var(--primary)); text-decoration:none; }
+a.table-name:hover { text-decoration:underline; }

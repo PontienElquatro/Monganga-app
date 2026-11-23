@@ -1,4 +1,4 @@
-import { getSession } from '@/lib/auth'
+import { getSession, hasAdminRole } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
 export const dynamic = 'force-dynamic'
@@ -13,7 +13,7 @@ const dollars = (c: number) => (c / 100).toFixed(2).replace('.', ',')
 /** Exports comptables (12 derniers mois) pour l'administration. Aucun contenu médical. */
 export async function GET(request: Request) {
   const session = await getSession()
-  if (!session || session.profile.role !== 'admin' || session.profile.suspended_at) return new Response('Accès refusé', { status: 403 })
+  if (!session || session.profile.suspended_at || !hasAdminRole(session, 'finance')) return new Response('Accès refusé', { status: 403 })
   const type = new URL(request.url).searchParams.get('type')
   const since = new Date(Date.now() - 365 * 86_400_000).toISOString()
   const supabase = await createClient()

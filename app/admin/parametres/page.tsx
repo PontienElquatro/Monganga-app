@@ -4,6 +4,7 @@ import { ActionForm } from '@/components/ui/action-form'
 import { SubmitButton } from '@/components/ui/form'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { dateShort } from '@/lib/format'
 import { updateSettingAction } from '@/app/admin/actions'
 
@@ -26,6 +27,7 @@ const UNITS: Record<string, { unit: 'usd' | 'min' | 'h' | 'j' | '%'; label: stri
 const SUFFIX = { usd: '$', min: 'minutes', h: 'heures', j: 'jours', '%': '%' }
 
 export default async function ParametresPage() {
+  await requireAdmin('super')
   const supabase = await createClient()
   const { data } = await supabase.from('settings').select('key, value, description, updated_at').order('key')
   const rows = ((data ?? []) as { key: string; value: number; description: string; updated_at: string }[]).filter((r) => r.key in UNITS)

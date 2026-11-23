@@ -13,6 +13,8 @@ export type PaymentMethod = 'mpesa' | 'orange_money' | 'airtel_money' | 'carte'
 export type PayoutMethod = 'mpesa' | 'orange_money' | 'airtel_money' | 'banque'
 export type RefundStatus = 'a_traiter' | 'effectue'
 
+export type AdminRole = 'super' | 'finance' | 'support' | 'validation'
+
 export interface Profile {
   id: string
   role: UserRole
@@ -25,6 +27,8 @@ export interface Profile {
   sex: 'F' | 'M' | null
   commune: string | null
   suspended_at: string | null
+  /** Rôles dans l'équipe d'administration (vide pour les patients et médecins). */
+  admin_roles?: AdminRole[]
   created_at: string
 }
 

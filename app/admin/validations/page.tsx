@@ -5,6 +5,7 @@ import { DoctorBadge } from '@/components/ui/status'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
 import { createClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { dateShort, fullName } from '@/lib/format'
 import type { DoctorStatus } from '@/lib/types'
 
@@ -21,6 +22,7 @@ const TABS: { key: string; label: string; statuses: DoctorStatus[] }[] = [
 export default async function ValidationsPage({ searchParams }: { searchParams: Promise<{ vue?: string }> }) {
   const { vue } = await searchParams
   const tab = TABS.find((t) => t.key === vue) ?? TABS[0]
+  await requireAdmin('validation')
   const supabase = await createClient()
   const { data } = await supabase.from('doctor_profiles')
     .select('id, specialty, status, submitted_at, decided_at, profiles!inner(first_name, last_name, email)')

@@ -49,7 +49,7 @@ select tst.ok((select role from public.profiles where id = '00000000-0000-0000-0
                   'les métadonnées ne permettent pas de devenir admin');
 select tst.ok((select role from public.profiles where id = '00000000-0000-0000-0000-00000000000d') = 'medecin',
                   'un candidat médecin a le rôle medecin');
-update public.profiles set role = 'admin' where id = '00000000-0000-0000-0000-00000000000a';
+update public.profiles set role = 'admin', admin_roles = '{super}' where id = '00000000-0000-0000-0000-00000000000a';
 
 -- Candidature -----------------------------------------------------------
 select tst.as_user('00000000-0000-0000-0000-00000000000d');

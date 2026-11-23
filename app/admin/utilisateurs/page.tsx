@@ -7,10 +7,11 @@ import { SubmitButton } from '@/components/ui/form'
 import { ConfirmSubmit } from '@/components/ui/confirm-submit'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
-import { requireRole } from '@/lib/auth'
+import { requireAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { setSuspendedAction } from '@/app/admin/actions'
 import { dateShort, fullName } from '@/lib/format'
+import { adminRolesLabel } from '@/lib/admin-roles'
 import type { Profile, UserRole } from '@/lib/types'
 
 export const metadata: Metadata = { title: 'Utilisateurs' }
@@ -19,7 +20,7 @@ const ROLES: Record<UserRole, string> = { patient: 'Patient', medecin: 'Médecin
 
 export default async function UtilisateursPage({ searchParams }: { searchParams: Promise<{ q?: string; role?: string }> }) {
   const { q, role } = await searchParams
-  const session = await requireRole('admin')
+  const session = await requireAdmin('support')
   const supabase = await createClient()
   let query = supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(300)
   if (role && role in ROLES) query = query.eq('role', role)
@@ -29,7 +30,7 @@ export default async function UtilisateursPage({ searchParams }: { searchParams:
   const rows = (data ?? []) as Profile[]
   return (
     <>
-      <PageHeading space="Administration" title="Utilisateurs" description="Patients, médecins et administrateurs. Suspendre bloque l’accès et annule (avec remboursement) les rendez-vous à venir." />
+      <PageHeading space="Administration" title="Utilisateurs" description="Patients, médecins et équipe. Ouvrez un nom pour voir ses rendez-vous. Suspendre bloque l’accès et annule (avec remboursement) les rendez-vous à venir." />
       <form className="inline-form mb-4" method="get">
         <input className="form-input" name="q" defaultValue={q ?? ''} placeholder="Nom ou e-mail" aria-label="Rechercher" />
         <select className="form-input" name="role" defaultValue={role ?? ''} aria-label="Rôle">
@@ -46,8 +47,8 @@ export default async function UtilisateursPage({ searchParams }: { searchParams:
             <tbody>
               {rows.map((p) => (
                 <tr key={p.id}>
-                  <td><div className="table-user"><Avatar name={fullName(p) || p.email} url={p.avatar_url} size="sm" /><div><span className="table-name">{fullName(p) || '—'}</span><span className="table-sub">{p.email}</span></div></div></td>
-                  <td>{ROLES[p.role]}</td>
+                  <td><div className="table-user"><Avatar name={fullName(p) || p.email} url={p.avatar_url} size="sm" /><div><Link className="table-name" href={`/admin/utilisateurs/${p.id}`}>{fullName(p) || '—'}</Link><span className="table-sub">{p.email}</span></div></div></td>
+                  <td>{p.role === 'admin' ? adminRolesLabel(p.admin_roles) : ROLES[p.role]}</td>
                   <td>{p.phone ?? '—'}</td>
                   <td>{dateShort(p.created_at)}</td>
                   <td>
