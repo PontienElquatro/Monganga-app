@@ -45,7 +45,12 @@ export async function getVisioAccess(input: {
   })
   if (!room.ok) {
     const text = await room.text()
-    if (!/already exists/i.test(text)) throw new Error(`Daily.co salle : ${room.status} ${text}`)
+    if (!/already exists/i.test(text)) {
+      // Empreinte de la clé (jamais la clé) pour vérifier qu'elle correspond à celle du tableau de bord Daily.
+      const k = env.daily().apiKey
+      const hint = room.status === 401 ? ` — clé lue : ${k.length} caractères, se termine par « ${k.slice(-4)} », ${/^[0-9a-f]+$/i.test(k) ? 'format correct' : 'caractères inattendus'}` : ''
+      throw new Error(`Daily.co salle : ${room.status} ${text}${hint}`)
+    }
   }
 
   const token = await daily('/meeting-tokens', {
