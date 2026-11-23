@@ -19,6 +19,7 @@ const UNITS: Record<string, { unit: 'usd' | 'min' | 'h' | 'j' | '%'; label: stri
   ouverture_solde_minutes: { unit: 'min', label: 'Ouverture du paiement du solde' },
   annulation_gratuite_heures: { unit: 'h', label: 'Annulation avec remboursement de l’acompte' },
   absence_minutes: { unit: 'min', label: 'Délai avant « patient absent »' },
+  ouverture_salle_minutes: { unit: 'min', label: 'Ouverture de la salle avant le rendez-vous' },
   fermeture_salle_minutes: { unit: 'min', label: 'Fermeture de la salle après la fin' },
   conservation_jours: { unit: 'j', label: 'Conservation des ordonnances et documents' },
   tarif_min_centimes: { unit: 'usd', label: 'Tarif minimum d’un médecin' },

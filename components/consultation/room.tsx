@@ -30,8 +30,9 @@ const size = (b: number) => (b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1).r
  * avec alerte 5 min avant la fin, messages et documents en temps réel.
  * Le panneau du médecin (notes, ordonnance, fin) est passé en « aside ».
  */
-export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, initialFiles, aside, leaveHref }: {
+export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, initialFiles, aside, leaveHref, opensMinutes = 5 }: {
   ctx: ConsultationContext
+  opensMinutes?: number
   me: string
   meName: string
   meAvatar: string | null
@@ -84,7 +85,8 @@ export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, i
 
   const ended = ctx.status === 'terminee'
   const closed = now > closes || !['confirme', 'en_cours', 'terminee'].includes(ctx.status)
-  const canEnter = now >= start - 5 * MIN && !closed && !ended
+  const opens = start - opensMinutes * MIN
+  const canEnter = now >= opens && !closed && !ended
   const canWrite = now >= start - 15 * MIN && now <= closes && (ctx.status === 'confirme' || ctx.status === 'en_cours')
   const remaining = end - now
   const warn = remaining > 0 && remaining <= 5 * MIN
@@ -225,7 +227,7 @@ export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, i
               ) : (
                 <button className="btn btn-primary btn-lg btn-block v3-start" type="button" onClick={join} disabled={!canEnter || joining}>
                   <Icon name={joining ? 'loader' : 'video'} className={joining ? 'spin' : undefined} />
-                  {joining ? 'Connexion…' : canEnter ? 'Démarrer la consultation' : `La salle ouvre à ${time(new Date(start - 5 * MIN).toISOString())}`}
+                  {joining ? 'Connexion…' : canEnter ? 'Démarrer la consultation' : `La salle ouvre à ${time(new Date(opens).toISOString())}`}
                 </button>
               )}
               <p className="meta">Votre navigateur vous demandera l’accès à la caméra et au micro. Vous pouvez entrer jusqu’à 5 minutes avant l’heure.</p>

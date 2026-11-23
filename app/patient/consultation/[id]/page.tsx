@@ -14,10 +14,10 @@ export default async function PatientConsultationPage({ params }: { params: Prom
   const data = await loadConsultation(id)
   if (!data || data.ctx.viewer !== 'patient') notFound()
   const { ctx } = data
+  const s = await getSettings()
 
   // « Démarrer » sans solde payé : on passe d'abord par le paiement, s'il est ouvert.
   if (!ctx.balance_paid && (ctx.status === 'confirme' || ctx.status === 'en_cours')) {
-    const s = await getSettings()
     const start = new Date(ctx.starts_at).getTime()
     const now = Date.now()
     if (now >= start - s.ouverture_solde_minutes * 60_000 && now <= start + s.absence_minutes * 60_000) {
@@ -27,6 +27,7 @@ export default async function PatientConsultationPage({ params }: { params: Prom
 
   return (
     <ConsultationRoom ctx={ctx} me={session.userId} meName={fullName(session.profile)} meAvatar={session.profile.avatar_url}
-                      initialMessages={data.messages} initialFiles={data.files} leaveHref="/patient/rendez-vous" />
+                      initialMessages={data.messages} initialFiles={data.files} leaveHref="/patient/rendez-vous"
+                      opensMinutes={s.ouverture_salle_minutes} />
   )
 }
