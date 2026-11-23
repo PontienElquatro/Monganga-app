@@ -62,5 +62,5 @@ body[data-static-layout][data-auth-state="error"] [data-dashboard-content] { dis
 .restored-auth .auth-success svg { color:#10b981;width:42px;height:42px; }
 @media (min-width:901px) { #patMenuBtn { display:none !important; } }
 @media (max-width:900px) { #patMenuBtn { display:inline-flex !important; } }
-@media (max-width:980px) { .doctor-sidebar:not(.is-open) { visibility:hidden; } .doctor-main .layout-two { grid-template-columns:1fr; } }
+@media (max-width:980px) { body .doctor-body:not(.workspace-sidebar-open) .doctor-sidebar { visibility:hidden; } .doctor-main .layout-two { grid-template-columns:1fr; } }
 @media (max-width:640px) { .restored-space .page-heading { align-items:stretch;flex-direction:column;gap:12px; } .timeline-item { flex-wrap:wrap; } .timeline-main { min-width:0; } .restored-auth .auth-card { padding:28px 22px; } .restored-auth .auth-wrapper { padding:24px 16px; } .app-toast { bottom:88px; } }
