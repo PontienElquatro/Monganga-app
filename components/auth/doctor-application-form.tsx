@@ -109,7 +109,8 @@ export function DoctorApplicationForm({ mode, userId, defaults, existingKinds = 
     }
   }
 
-  const needDoc = (kind: DocumentKind, required: boolean) => mode === 'inscription' ? required : false
+  // Pièce obligatoire tant qu'elle n'est pas déjà dans le dossier (inscription ou premier dépôt).
+  const needDoc = (kind: DocumentKind, required: boolean) => required && !existingKinds.includes(kind)
   return (
     <form onSubmit={onSubmit} className="form-stack" noValidate={false}>
       {mode === 'inscription' ? (

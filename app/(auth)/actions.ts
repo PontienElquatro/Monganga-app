@@ -152,7 +152,8 @@ export async function startDoctorSignupAction(fd: FormData, docs: DocMeta[]): Pr
   for (const d of docs) {
     const path = `${userId}/${d.kind}-${crypto.randomUUID().slice(0, 8)}.${extension(d.type)}`
     const { data: signed, error: signError } = await admin.storage.from('candidatures').createSignedUploadUrl(path)
-    if (signError || !signed) return { error: 'Impossible de préparer l’envoi des pièces. Réessayez.' }
+    // Le compte et le dossier existent déjà : une pièce non préparée sera ajoutée depuis « Mon dossier ».
+    if (signError || !signed) { console.error('[pièces] lien d’envoi', signError?.message); continue }
     uploads.push({ kind: d.kind, path, token: signed.token, name: d.name.slice(0, 120), size: d.size })
   }
   const expires = Date.now() + 30 * 60 * 1000
@@ -188,15 +189,18 @@ const EDITABLE: string[] = ['en_attente', 'complement_demande', 'refuse']
 export async function prepareResubmitUploadsAction(docs: DocMeta[]): Promise<{ error?: string; uploads?: UploadTicket[] }> {
   const session = await getSession()
   if (!session || session.profile.role !== 'medecin') return { error: 'Votre session a expiré. Reconnectez-vous avec votre compte médecin, puis renvoyez vos pièces.' }
-  if (!session.doctor || !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
-  const docProblem = checkDocs(docs, false)
+  if (session.doctor && !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
+  const docProblem = checkDocs(docs, !session.doctor)
   if (docProblem) return { error: docProblem }
   const admin = createAdminClient()
   const uploads: UploadTicket[] = []
   for (const d of docs) {
     const path = `${session.userId}/${d.kind}-${crypto.randomUUID().slice(0, 8)}.${extension(d.type)}`
     const { data: signed, error: signError } = await admin.storage.from('candidatures').createSignedUploadUrl(path)
-    if (signError || !signed) return { error: 'Impossible de préparer l’envoi des pièces. Réessayez dans un instant.' }
+    if (signError || !signed) {
+      console.error('[pièces] lien d’envoi', signError?.message)
+      return { error: 'Impossible de préparer l’envoi des pièces. Réessayez dans un instant.' }
+    }
     uploads.push({ kind: d.kind, path, token: signed.token, name: d.name.slice(0, 120), size: d.size })
   }
   return { uploads }
@@ -207,8 +211,13 @@ export async function resubmitApplicationAction(fd: FormData, uploaded: { kind: 
   if (!session || session.profile.role !== 'medecin') return { error: 'Connectez-vous avec votre compte médecin.' }
   const app = readApplication(fd)
   if (!app.specialty || !app.fee || !app.payout) return { error: 'Complétez la spécialité, le tarif et le moyen de versement.' }
-  if (!session.doctor || !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
+  if (session.doctor && !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
   const supabase = await createClient()
+  const { error: submitError } = await supabase.rpc('submit_application', {
+    p_specialty: app.specialty, p_bio: app.bio, p_fee_cents: app.fee, p_languages: app.languages, p_years: app.years,
+    p_commune: app.commune, p_payout_method: app.payout, p_payout_account: app.account, p_payout_holder: app.holder,
+  })
+  if (submitError) return { error: friendlyError(submitError) }
   if (uploaded.length) {
     // On n'enregistre que les fichiers réellement présents dans le dossier privé du médecin.
     const admin = createAdminClient()
@@ -221,11 +230,6 @@ export async function resubmitApplicationAction(fd: FormData, uploaded: { kind: 
     const { error } = await admin.from('doctor_documents').upsert(rows, { onConflict: 'storage_path' })
     if (error) return { error: friendlyError(error) }
   }
-  const { error } = await supabase.rpc('submit_application', {
-    p_specialty: app.specialty, p_bio: app.bio, p_fee_cents: app.fee, p_languages: app.languages, p_years: app.years,
-    p_commune: app.commune, p_payout_method: app.payout, p_payout_account: app.account, p_payout_holder: app.holder,
-  })
-  if (error) return { error: friendlyError(error) }
   flushEmailsSoon()
   return {}
 }
