@@ -2,6 +2,7 @@ import 'server-only'
 import { after } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/services/email'
+import { boxForNotification } from '@/lib/contact'
 
 /**
  * Envoie les e-mails des notifications en attente (file « notifications » de la base).
@@ -11,7 +12,7 @@ export async function flushEmailQueue(limit = 40): Promise<number> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from('notifications')
-    .select('id, title, body, link, user_id, profiles!inner(email, suspended_at)')
+    .select('id, kind, title, body, link, user_id, profiles!inner(email, suspended_at)')
     .eq('send_email', true)
     .is('emailed_at', null)
     .order('created_at', { ascending: true })
@@ -19,11 +20,11 @@ export async function flushEmailQueue(limit = 40): Promise<number> {
   if (error || !data) return 0
 
   let sent = 0
-  for (const n of data as unknown as Array<{ id: string; title: string; body: string; link: string | null; profiles: { email: string; suspended_at: string | null } }>) {
+  for (const n of data as unknown as Array<{ id: string; kind: string; title: string; body: string; link: string | null; profiles: { email: string; suspended_at: string | null } }>) {
     const email = n.profiles?.email
     let ok = true
     if (email && !n.profiles.suspended_at) {
-      ok = await sendEmail({ to: email, subject: `MONGANGA — ${n.title}`, title: n.title, body: n.body, link: n.link })
+      ok = await sendEmail({ to: email, subject: `MONGANGA — ${n.title}`, title: n.title, body: n.body, link: n.link, box: boxForNotification(n.kind) })
     }
     if (ok) {
       await admin.from('notifications').update({ emailed_at: new Date().toISOString() }).eq('id', n.id)

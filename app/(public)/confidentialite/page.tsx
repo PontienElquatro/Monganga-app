@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/public/legal-page'
+import { EMAILS } from '@/lib/contact'
 
 export const metadata: Metadata = { title: 'Politique de confidentialité' }
 
@@ -28,7 +29,7 @@ export default function ConfidentialitePage() {
       <h2>5. Sécurité</h2>
       <p>Les échanges sont chiffrés. L’accès aux données est contrôlé par la base de données elle-même à chaque demande. Les documents sont stockés dans des espaces privés, ouverts par des liens temporaires.</p>
       <h2>6. Vos droits</h2>
-      <p>Vous pouvez consulter et corriger vos informations depuis votre profil, et demander la suppression de votre compte en écrivant à contact@monganga.cd.</p>
+      <p>Vous pouvez consulter et corriger vos informations depuis votre profil, et demander la suppression de votre compte ou de vos données en écrivant à {EMAILS.contact}.</p>
     </LegalPage>
   )
 }

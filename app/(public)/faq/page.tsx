@@ -2,6 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
 import { FaqList, type FaqEntry } from '@/components/public/faq-list'
+import { EMAILS } from '@/lib/contact'
 
 export const metadata: Metadata = { title: 'Questions fréquentes' }
 
@@ -13,7 +14,9 @@ const FAQ: FaqEntry[] = [
   { category: 'paiement', icon: 'smartphone', question: 'Quels moyens de paiement sont acceptés ?', answer: 'M-Pesa, Orange Money, Airtel Money et les cartes Visa ou Mastercard.' },
   { category: 'paiement', icon: 'credit-card', question: 'Quand dois-je payer le solde ?', answer: 'À partir d’une heure avant la consultation. Vous recevez un rappel par e-mail. Si vous cliquez sur « Démarrer » sans avoir payé, l’écran de paiement s’ouvre d’abord.' },
   { category: 'paiement', icon: 'refresh-cw', question: 'Que se passe-t-il si le médecin ne vient pas ?', answer: 'Vous êtes remboursé de tout, acompte et solde. L’équipe MONGANGA est prévenue automatiquement.' },
+  { category: 'paiement', icon: 'banknote', question: 'J’ai un problème de paiement ou de remboursement', answer: `Écrivez à ${EMAILS.sav} en indiquant la référence de votre rendez-vous (MGA-…) et le numéro utilisé pour payer. Notre service après-vente vous répond sous 24 heures ouvrables.` },
   { category: 'consultation', icon: 'wifi-off', question: 'Et si ma connexion est mauvaise ?', answer: 'Coupez la caméra pendant l’appel : la consultation continue en audio et consomme beaucoup moins de données.' },
+  { category: 'consultation', icon: 'lock', question: 'Je n’arrive pas à me connecter ou la visio ne fonctionne pas', answer: `Essayez « Mot de passe oublié » sur la page de connexion, puis vérifiez que le navigateur a accès à la caméra et au micro. Si le problème continue, écrivez à ${EMAILS.support} avec une capture d’écran.` },
   { category: 'consultation', icon: 'file-text', question: 'Comment recevoir mon ordonnance ?', answer: 'Le médecin vous l’envoie pendant ou juste après la consultation. Elle apparaît dans « Ordonnances », téléchargeable en PDF avec un QR code que le pharmacien peut vérifier.' },
   { category: 'consultation', icon: 'lock', question: 'Mes données sont-elles protégées ?', answer: 'Seul votre médecin voit votre consultation. L’administration n’a pas accès aux ordonnances. Ordonnances, documents et messages sont supprimés 30 jours après la consultation.' },
   { category: 'consultation', icon: 'circle-alert', question: 'Puis-je utiliser MONGANGA en cas d’urgence ?', answer: 'Non. En cas d’urgence (douleur intense, difficulté à respirer, perte de connaissance), rendez-vous immédiatement à l’hôpital le plus proche.' },

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
+import { EMAILS, mailto } from '@/lib/contact'
 import { AppointmentBadge, Badge } from '@/components/ui/status'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
@@ -77,6 +78,9 @@ function PastBooking({ a }: { a: PatientAppointment }) {
       ) : null}
       {a.status === 'absence_patient' ? <p className="meta">Absence constatée : l’acompte reste acquis, comme prévu dans les conditions.</p> : null}
       {refund ? <p className="meta"><Icon name="banknote" /> {refund}</p> : null}
+      {refund || a.status === 'annulee_medecin' || a.status === 'absence_medecin' || a.status === 'absence_patient' ? (
+        <p className="meta">Une question sur ce rendez-vous ou ce remboursement ? <a className="auth-link" href={mailto('sav', `Rendez-vous ${a.reference}`)}>{EMAILS.sav}</a></p>
+      ) : null}
       {a.status === 'terminee' ? (
         <>
           {a.has_prescription ? <div className="actions"><Link className="btn btn-secondary" href="/patient/ordonnances"><Icon name="file-text" /> Voir l’ordonnance</Link></div> : null}

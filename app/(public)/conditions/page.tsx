@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/public/legal-page'
+import { EMAILS } from '@/lib/contact'
 
 export const metadata: Metadata = { title: 'Conditions d’utilisation' }
 
@@ -19,6 +20,7 @@ export default function ConditionsPage() {
         <li>La réservation est confirmée après le paiement d’un acompte de 1 $, déduit du tarif.</li>
         <li>Le solde est payé le jour de la consultation, à partir d’une heure avant.</li>
         <li>Les paiements sont traités par un prestataire agréé ; MONGANGA ne conserve aucun numéro de carte.</li>
+        <li>Pour toute question sur un paiement : {EMAILS.sav}.</li>
       </ul>
       <h2>5. Annulations, absences et remboursements</h2>
       <ul>
@@ -26,6 +28,7 @@ export default function ConditionsPage() {
         <li>Annulation par le patient moins de 24 h avant : l’acompte reste acquis.</li>
         <li>Solde non payé 10 minutes après l’heure prévue : le rendez-vous est considéré comme manqué et l’acompte reste acquis.</li>
         <li>Annulation ou absence du médecin : le patient est remboursé intégralement.</li>
+        <li>Réclamations et suivi des remboursements : {EMAILS.sav}, en indiquant la référence du rendez-vous (MGA-…).</li>
       </ul>
       <h2>6. Consultation et ordonnances</h2>
       <p>La consultation dure 30 minutes. Les ordonnances, documents et messages échangés restent disponibles 30 jours après la consultation, puis sont supprimés. Il appartient au patient de télécharger les documents qu’il souhaite conserver.</p>
@@ -34,7 +37,11 @@ export default function ConditionsPage() {
       <h2>8. Responsabilité</h2>
       <p>MONGANGA met tout en œuvre pour assurer la disponibilité du service, sans pouvoir garantir une absence totale d’interruption, notamment liée aux réseaux de téléphonie et à Internet.</p>
       <h2>9. Contact</h2>
-      <p>Pour toute question : contact@monganga.cd.</p>
+      <ul>
+        <li>Questions générales : {EMAILS.contact}</li>
+        <li>Compte, connexion, problème technique : {EMAILS.support}</li>
+        <li>Paiements, remboursements, réclamations : {EMAILS.sav}</li>
+      </ul>
     </LegalPage>
   )
 }

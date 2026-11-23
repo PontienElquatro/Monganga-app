@@ -81,7 +81,7 @@ Voir `.env.example` (aucune vraie valeur dans le dépôt). Sur Cloudflare : *Wor
 | `CRON_SECRET` | oui | Protège `/api/cron` |
 | `PAYMENT_PROVIDER` | oui | `test` (simulation) ou `maishapay` |
 | `DAILY_API_KEY`, `DAILY_DOMAIN` | non | Visio réelle |
-| `RESEND_API_KEY`, `EMAIL_FROM` | non | E-mails de notification |
+| `RESEND_API_KEY` | non | E-mails de notification (envoyés depuis `contact@`, `sav@` ou `support@monganga.org`, voir `lib/contact.ts`) |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | non | Photos de profil |
 
 ## 4. Organisation du code
@@ -113,7 +113,10 @@ Le site est déployé sur Cloudflare Workers à partir de la branche `v2` du dé
 2. Commandes de build et de déploiement :
    - Build command : `npx opennextjs-cloudflare build`
    - Deploy command : `npx wrangler deploy`
-3. *Build variables and secrets* : ajouter toutes les variables du tableau ci-dessus (les `NEXT_PUBLIC_*` sont nécessaires au build).
+3. Les variables se saisissent à **deux** endroits :
+   - *Settings → Builds → Variables and secrets* (variables de **build**) : au minimum les `NEXT_PUBLIC_*`, intégrées au code pendant le build ;
+   - *Settings → Variables and secrets* tout en haut (variables d’**exécution**) : **toutes** les autres (`SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `PAYMENT_PROVIDER`, `DAILY_*`, `RESEND_API_KEY`…), de préférence en type *Secret*. Sans elles, le site tourne mais la visio, les e-mails et les tâches serveur restent en mode test.
+   `keep_vars` (dans `wrangler.jsonc`) évite qu’un déploiement efface ces variables.
 4. Lancer le premier déploiement, puis *Settings → Domains & Routes* → ajouter le domaine `monganga.org`.
 5. Vérifier que `https://monganga.org` répond, puis la tâche planifiée (étape 5 de la section 2) doit viser `https://monganga.org/api/cron`.
 

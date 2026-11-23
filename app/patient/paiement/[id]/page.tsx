@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
+import { EMAILS, mailto } from '@/lib/contact'
 import { Badge } from '@/components/ui/status'
 import { AutoRefresh } from '@/components/ui/auto-refresh'
 import { PageHeading } from '@/components/ui/page-heading'
@@ -61,7 +62,7 @@ export default async function PaiementPage({ params, searchParams }: {
         <section className="panel stack v3-center">
           <Icon name="loader" className="spin" />
           <p><strong>{usd(watched.amount_cents)}</strong> via {paymentLabel(watched.method)}</p>
-          <p className="meta">Si rien ne se passe après quelques minutes, revenez à vos rendez-vous et réessayez.</p>
+          <p className="meta">Si rien ne se passe après quelques minutes, revenez à vos rendez-vous et réessayez. Si le montant a été débité sans confirmation, écrivez à <a className="auth-link" href={mailto('sav', `Paiement ${a.reference}`)}>{EMAILS.sav}</a>.</p>
           <Link className="btn btn-secondary" href="/patient/rendez-vous"><Icon name="calendar" /> Mes rendez-vous</Link>
         </section>
       </>

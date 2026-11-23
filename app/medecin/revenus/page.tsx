@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
+import { EMAILS, mailto } from '@/lib/contact'
 import { Badge } from '@/components/ui/status'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
@@ -78,6 +79,7 @@ export default async function RevenusPage() {
             </table>
           </div>
         ) : <EmptyState icon="wallet" title="Pas encore de revenus" text="Votre part apparaît ici dès la fin de chaque consultation." />}
+        <p className="meta">Une question sur un versement ? <a className="auth-link" href={mailto('sav', 'Versement médecin')}>{EMAILS.sav}</a></p>
       </section>
     </>
   )

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { LegalPage } from '@/components/public/legal-page'
+import { EMAILS } from '@/lib/contact'
 
 export const metadata: Metadata = { title: 'Mentions légales' }
 
@@ -15,7 +16,7 @@ export default function MentionsPage() {
       <h2>4. Propriété intellectuelle</h2>
       <p>Le nom MONGANGA, le logo, les textes et les visuels de la plateforme sont protégés. Toute reproduction sans autorisation est interdite.</p>
       <h2>5. Contact</h2>
-      <p>contact@monganga.cd</p>
+      <p>{EMAILS.contact}</p>
     </LegalPage>
   )
 }

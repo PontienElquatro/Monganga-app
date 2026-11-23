@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
+import { EMAILS, mailto } from '@/lib/contact'
 import { PageHeading } from '@/components/ui/page-heading'
 import { AvatarUpload } from '@/components/profile/avatar-upload'
 import { ProfileForm } from '@/components/profile/profile-form'
@@ -25,7 +26,7 @@ export default async function PatientProfilPage() {
           <p className="meta">Pour changer de mot de passe, nous vous envoyons un lien par e-mail.</p>
           <Link className="btn btn-secondary" href="/mot-de-passe-oublie"><Icon name="lock" /> Changer mon mot de passe</Link>
           <h2 className="v3-subtitle">Vos données</h2>
-          <p className="meta">Vos ordonnances, messages et documents de consultation sont supprimés 30 jours après chaque consultation. Pour fermer votre compte, écrivez à contact@monganga.cd.</p>
+          <p className="meta">Vos ordonnances, messages et documents de consultation sont supprimés 30 jours après chaque consultation. Pour fermer votre compte, écrivez à <a className="auth-link" href={mailto('support', 'Fermeture de mon compte')}>{EMAILS.support}</a>.</p>
           <form action="/auth/deconnexion" method="post"><button className="btn btn-ghost" type="submit"><Icon name="log-out" /> Se déconnecter</button></form>
         </aside>
       </div>

@@ -15,7 +15,7 @@ export const env = {
   cronSecret: () => process.env.CRON_SECRET || '',
   paymentProvider: (): 'test' | 'maishapay' => (process.env.PAYMENT_PROVIDER === 'maishapay' ? 'maishapay' : 'test'),
   daily: () => ({ apiKey: process.env.DAILY_API_KEY || '', domain: process.env.DAILY_DOMAIN || '' }),
-  resend: () => ({ apiKey: process.env.RESEND_API_KEY || '', from: process.env.EMAIL_FROM || 'MONGANGA <notifications@monganga.cd>' }),
+  resend: () => ({ apiKey: process.env.RESEND_API_KEY || '' }),
   cloudinary: () => ({
     cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || '',
     apiKey: process.env.CLOUDINARY_API_KEY || '',

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Logo } from '@/components/ui/logo'
+import { EMAILS, mailto } from '@/lib/contact'
 
 export function PublicFooter() {
   return (
@@ -20,6 +21,7 @@ export function PublicFooter() {
             <h5>Aide</h5>
             <Link href="/faq">FAQ</Link>
             <Link href="/contact">Contact</Link>
+            <a href={mailto('support')}>{EMAILS.support}</a>
             <Link href="/inscription?type=medecin">Devenir médecin</Link>
           </div>
           <div className="footer-col">

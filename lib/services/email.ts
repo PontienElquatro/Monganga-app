@@ -1,5 +1,6 @@
 import 'server-only'
 import { env, modes } from '@/lib/config'
+import { EMAILS, SENDER_NAMES, type EmailBox } from '@/lib/contact'
 
 export interface EmailMessage {
   to: string
@@ -8,6 +9,8 @@ export interface EmailMessage {
   body: string
   link?: string | null
   linkLabel?: string
+  /** Adresse d'expédition (et de réponse) : contact par défaut. */
+  box?: EmailBox
 }
 
 function escapeHtml(s: string): string {
@@ -17,6 +20,7 @@ function escapeHtml(s: string): string {
 /** Gabarit d'e-mail aux couleurs de MONGANGA (simple, lisible sur téléphone). */
 export function renderEmail(m: EmailMessage): { html: string; text: string } {
   const site = env.siteUrl()
+  const replyTo = EMAILS[m.box ?? 'contact']
   const url = m.link ? (m.link.startsWith('http') ? m.link : site + m.link) : null
   const html = `<!doctype html><html lang="fr"><body style="margin:0;background:#F1F6FB;font-family:Arial,Helvetica,sans-serif;color:#0F172A">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
@@ -31,11 +35,11 @@ export function renderEmail(m: EmailMessage): { html: string; text: string } {
         ${url ? `<a href="${url}" style="display:inline-block;background:#0F6EB9;color:#ffffff;text-decoration:none;font-weight:700;padding:12px 20px;border-radius:10px">${escapeHtml(m.linkLabel || 'Ouvrir MONGANGA')}</a>` : ''}
       </td></tr>
       <tr><td style="padding:16px 24px;border-top:1px solid #E2E8F0;font-size:12px;color:#64748B">
-        Monganga na yo, na tshombo na yo. Cet e-mail est envoyé automatiquement, merci de ne pas y répondre.
+        Monganga na yo, na tshombo na yo. Une question ? Répondez simplement à cet e-mail, il arrive à l’équipe MONGANGA (${replyTo}).
       </td></tr>
     </table>
   </td></tr></table></body></html>`
-  const text = `${m.title}\n\n${m.body}${url ? `\n\n${url}` : ''}\n\n— MONGANGA`
+  const text = `${m.title}\n\n${m.body}${url ? `\n\n${url}` : ''}\n\n— MONGANGA (${replyTo})`
   return { html, text }
 }
 
@@ -46,11 +50,12 @@ export async function sendEmail(m: EmailMessage): Promise<boolean> {
     console.info(`[e-mail test] à ${m.to} — ${m.subject}`)
     return true
   }
-  const { apiKey, from } = env.resend()
+  const { apiKey } = env.resend()
+  const box = m.box ?? 'contact'
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from, to: [m.to], subject: m.subject, html, text }),
+    body: JSON.stringify({ from: `${SENDER_NAMES[box]} <${EMAILS[box]}>`, reply_to: EMAILS[box], to: [m.to], subject: m.subject, html, text }),
   })
   if (!res.ok) {
     console.error('[e-mail] échec', res.status, await res.text().catch(() => ''))

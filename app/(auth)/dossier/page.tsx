@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { Icon } from '@/components/ui/icon'
+import { EMAILS, mailto } from '@/lib/contact'
 import { DoctorApplicationForm } from '@/components/auth/doctor-application-form'
 import { dateLong } from '@/lib/format'
 import type { DocumentKind } from '@/lib/types'
@@ -56,7 +57,7 @@ export default async function DossierPage() {
       <div className="v3-center">
         <div className="v3-icon-circle danger"><Icon name="ban" /></div>
         <h1 className="auth-title">Compte médecin suspendu</h1>
-        <p className="auth-subtitle">Votre accès est suspendu. Contactez l’équipe MONGANGA : contact@monganga.cd.</p>
+        <p className="auth-subtitle">Votre accès est suspendu. Contactez l’équipe MONGANGA : <a className="auth-link" href={mailto('support', 'Compte médecin suspendu')}>{EMAILS.support}</a>.</p>
         {logout}
       </div>
     )
