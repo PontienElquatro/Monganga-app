@@ -22,7 +22,7 @@ export default function AccueilPage() {
             </div>
           </div>
           <div className="hero-visual slide-in-right">
-            <img className="hero-visual-image" src="/images/doctor-teleconsultation.webp" alt="Médecin en téléconsultation avec une patiente"
+            <img className="hero-visual-image" src="/images/medecin-teleconsultation.webp" alt="Médecin congolais en téléconsultation sur son ordinateur"
                  width={1600} height={1067} fetchPriority="high" decoding="async" />
           </div>
         </div>
