@@ -2,7 +2,7 @@
 import { useRouter } from 'next/navigation'
 import { useActionState, useEffect, useRef, useState, useTransition, type ChangeEvent } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { endConsultationAction, issuePrescriptionAction, saveNoteAction } from '@/app/medecin/actions'
 import { time } from '@/lib/format'
 import type { ActionState, AppointmentStatus, PrescriptionItem } from '@/lib/types'
@@ -66,7 +66,7 @@ export function ConsultPanel({ appointmentId, status, closesAt, initialNote, pre
       <section className="panel stack">
         <h2><Icon name="stamp" /> Ordonnance {prescription ? <small className="meta">n° {prescription.code}</small> : null}</h2>
         {canPrescribe ? (
-          <form action={rxAction} className="stack">
+          <Form action={rxAction} className="stack">
             <input type="hidden" name="appointment_id" value={appointmentId} />
             {items.map((it, i) => (
               <div className="rx-editor-row" key={i}>
@@ -86,7 +86,7 @@ export function ConsultPanel({ appointmentId, status, closesAt, initialNote, pre
             <FormMessage state={rxState} />
             <SubmitButton icon="send">{prescription ? 'Mettre à jour l’ordonnance' : 'Émettre l’ordonnance'}</SubmitButton>
             <p className="meta">Le patient la reçoit immédiatement, avec un QR code de vérification. Possible pendant la consultation et jusqu’à 24 h après.</p>
-          </form>
+          </Form>
         ) : (
           <p className="meta">{prescription ? 'Ordonnance émise.' : 'L’ordonnance s’émet une fois la consultation démarrée (les deux participants connectés).'}</p>
         )}

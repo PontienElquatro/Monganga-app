@@ -3,13 +3,13 @@ import Link from 'next/link'
 import { useActionState } from 'react'
 import { loginAction } from '../actions'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { PasswordInput } from '@/components/auth/password-input'
 
 export function LoginForm({ suite }: { suite: string }) {
   const [state, action] = useActionState(loginAction, {})
   return (
-    <form action={action}>
+    <Form action={action}>
       <input type="hidden" name="suite" value={suite} />
       <div className="form-group">
         <label className="form-label" htmlFor="email">Adresse e-mail</label>
@@ -27,6 +27,6 @@ export function LoginForm({ suite }: { suite: string }) {
       </div>
       <FormMessage state={state} />
       <SubmitButton className="btn btn-primary btn-lg btn-block" pendingLabel="Connexion…">Se connecter <Icon name="arrow-right" /></SubmitButton>
-    </form>
+    </Form>
   )
 }

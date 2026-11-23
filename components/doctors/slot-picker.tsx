@@ -2,7 +2,7 @@
 import Link from 'next/link'
 import { useActionState, useMemo, useState } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { dateLong, dayKey, time, usd } from '@/lib/format'
 import type { ActionState, Slot } from '@/lib/types'
 
@@ -40,7 +40,7 @@ export function SlotPicker({ slots, depositCents, loginHref, action }: {
   }
 
   return (
-    <form action={formAction} className="panel stack">
+    <Form action={formAction} className="panel stack">
       <div>
         <h2>Choisissez un créneau</h2>
         <p className="meta">Heure de Kinshasa · consultation de 30 minutes</p>
@@ -73,6 +73,6 @@ export function SlotPicker({ slots, depositCents, loginHref, action }: {
       ) : (
         <Link className="btn btn-primary btn-lg btn-block" href={loginHref ?? '/connexion'}><Icon name="log-in" /> Se connecter pour réserver</Link>
       )}
-    </form>
+    </Form>
   )
 }

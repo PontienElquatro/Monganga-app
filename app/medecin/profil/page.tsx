@@ -4,6 +4,7 @@ import { Icon } from '@/components/ui/icon'
 import { PageHeading } from '@/components/ui/page-heading'
 import { AvatarUpload } from '@/components/profile/avatar-upload'
 import { ProfileForm } from '@/components/profile/profile-form'
+import { PasswordForm } from '@/components/profile/password-form'
 import { DoctorProForm } from '@/components/doctor/doctor-pro-form'
 import { requireRole } from '@/lib/auth'
 import { modes } from '@/lib/config'
@@ -26,6 +27,8 @@ export default async function MedecinProfilPage() {
           <p className="meta">Spécialité : <strong>{doctor.specialty}</strong>. Pour la modifier, écrivez à l’équipe MONGANGA (elle est vérifiée avec vos diplômes).</p>
           <ProfileForm profile={session.profile} showHealthFields={false} />
           <p className="meta">Votre e-mail et votre téléphone ne sont jamais montrés aux patients.</p>
+          <h2 className="v3-subtitle">Sécurité</h2>
+          <PasswordForm />
         </section>
         <section className="panel">
           <DoctorProForm doctor={doctor} feeMin={settings.tarif_min_centimes} feeMax={settings.tarif_max_centimes} />

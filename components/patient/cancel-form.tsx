@@ -1,7 +1,7 @@
 'use client'
 import { useActionState, useState } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { cancelAppointmentAction } from '@/app/patient/actions'
 import type { ActionState } from '@/lib/types'
 
@@ -14,7 +14,7 @@ export function CancelForm({ appointmentId, consequence }: { appointmentId: stri
     return <button className="btn btn-secondary" type="button" onClick={() => setOpen(true)}><Icon name="x" /> Annuler</button>
   }
   return (
-    <form action={action} className="stack cancel-box">
+    <Form action={action} className="stack cancel-box">
       <input type="hidden" name="appointment_id" value={appointmentId} />
       <p className="notice warning"><Icon name="circle-alert" /> {consequence}</p>
       <div className="field">
@@ -26,6 +26,6 @@ export function CancelForm({ appointmentId, consequence }: { appointmentId: stri
         <SubmitButton className="btn btn-danger" icon="x">Confirmer l’annulation</SubmitButton>
         <button className="btn btn-ghost" type="button" onClick={() => setOpen(false)}>Garder le rendez-vous</button>
       </div>
-    </form>
+    </Form>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 import { useActionState } from 'react'
-import { FormMessage } from './form'
+import { Form, FormMessage } from './form'
 import type { ActionState } from '@/lib/types'
 
 type Action = (state: ActionState, fd: FormData) => Promise<ActionState>
@@ -15,9 +15,9 @@ export function ActionForm({ action, children, className = 'stack', hideOnSucces
   const [state, formAction] = useActionState<ActionState, FormData>(action, {})
   if (hideOnSuccess && state.ok) return <FormMessage state={state} />
   return (
-    <form action={formAction} className={className}>
+    <Form action={formAction} className={className}>
       {children}
       <FormMessage state={state} />
-    </form>
+    </Form>
   )
 }

@@ -98,3 +98,6 @@ fieldset.field { border:0; padding:0; margin:0; }
 .v3-docs li > span { flex:1; display:grid; } .v3-docs li small { font-weight:500; color:var(--text-3); }
 .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .settings-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; }
+
+/* Carte des pages de connexion : toujours claire, même en mode sombre (textes lisibles, comme la maquette). */
+.auth-card { --surface:#fff; --surface-2:#f8fafc; --bg:#f1f5f9; --text:#0f172a; --text-2:#475569; --text-3:#64748b; --border:#e2e8f0; --border-strong:#cbd5e1; --primary-light:#E8F2FB; --primary-soft:#D3E6F6; --danger-bg:#fee2e2; --danger-text:#b91c1c; --info-bg:#dbeafe; --info-text:#1d4ed8; --success-bg:#d1fae5; --success-text:#047857; --warning-bg:#fef3c7; --warning-text:#b45309; --primary-text:#0F6EB9; color:var(--text); color-scheme:light; }

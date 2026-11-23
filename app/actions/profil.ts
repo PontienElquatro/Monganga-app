@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth'
 import { modes } from '@/lib/config'
 import { friendlyError } from '@/lib/errors'
 import { COMMUNES } from '@/lib/format'
-import { isPhone, str } from '@/lib/validation'
+import { isPhone, passwordProblem, str } from '@/lib/validation'
 import { isOwnCloudinaryUrl, signAvatarUpload } from '@/lib/services/cloudinary'
 import type { ActionState } from '@/lib/types'
 
@@ -62,4 +62,25 @@ export async function markNotificationsReadAction(ids: string[] | null): Promise
   const supabase = await createClient()
   await supabase.rpc('mark_notifications_read', { p_ids: clean })
   revalidatePath('/', 'layout')
+}
+
+/** Changement de mot de passe : vérifie l'ancien avant d'enregistrer le nouveau. */
+export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const session = await getSession()
+  if (!session) return { error: 'Session expirée. Reconnectez-vous.' }
+  const current = String(fd.get('current_password') ?? '')
+  const next = String(fd.get('new_password') ?? '')
+  const confirm = String(fd.get('confirm_password') ?? '')
+  if (!current) return { error: 'Saisissez votre mot de passe actuel.' }
+  const problem = passwordProblem(next)
+  if (problem) return { error: problem }
+  if (next !== confirm) return { error: 'Les deux nouveaux mots de passe ne sont pas identiques.' }
+  if (next === current) return { error: 'Le nouveau mot de passe doit être différent de l’ancien.' }
+
+  const supabase = await createClient()
+  const check = await supabase.auth.signInWithPassword({ email: session.email, password: current })
+  if (check.error) return { error: 'Le mot de passe actuel est incorrect.' }
+  const { error } = await supabase.auth.updateUser({ password: next })
+  if (error) return { error: friendlyError(error) }
+  return { ok: true, message: 'Votre mot de passe a été modifié. Utilisez-le à votre prochaine connexion.' }
 }

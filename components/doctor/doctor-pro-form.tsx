@@ -1,6 +1,6 @@
 'use client'
 import { useActionState, useState } from 'react'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { updateDoctorProfileAction } from '@/app/medecin/actions'
 import { COMMUNES, PAYOUT_METHODS } from '@/lib/format'
 import type { ActionState, DoctorProfile, PayoutMethod } from '@/lib/types'
@@ -11,7 +11,7 @@ export function DoctorProForm({ doctor, feeMin, feeMax }: { doctor: DoctorProfil
   const [state, action] = useActionState<ActionState, FormData>(updateDoctorProfileAction, {})
   const [method, setMethod] = useState<PayoutMethod>(doctor.payout_method)
   return (
-    <form action={action} className="stack">
+    <Form action={action} className="stack">
       <h2>Présentation</h2>
       <div className="field"><label htmlFor="bio">Présentation <small>(visible par les patients)</small></label>
         <textarea className="form-input" id="bio" name="bio" rows={5} maxLength={1200} defaultValue={doctor.bio} placeholder="Votre parcours, vos domaines de prise en charge…" /></div>
@@ -44,6 +44,6 @@ export function DoctorProForm({ doctor, feeMin, feeMax }: { doctor: DoctorProfil
       <p className="meta">Les frais de transfert du prestataire sont déduits de chaque versement.</p>
       <FormMessage state={state} />
       <SubmitButton icon="check">Enregistrer le profil professionnel</SubmitButton>
-    </form>
+    </Form>
   )
 }

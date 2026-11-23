@@ -1,7 +1,7 @@
 'use client'
 import { useActionState, useState } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { rateAppointmentAction } from '@/app/patient/actions'
 import type { ActionState } from '@/lib/types'
 
@@ -11,7 +11,7 @@ export function RatingForm({ appointmentId }: { appointmentId: string }) {
   const [state, action] = useActionState<ActionState, FormData>(rateAppointmentAction, {})
   if (state.ok) return <FormMessage state={state} />
   return (
-    <form action={action} className="v3-rate">
+    <Form action={action} className="v3-rate">
       <input type="hidden" name="appointment_id" value={appointmentId} />
       <strong>Comment s’est passée votre consultation ?</strong>
       <fieldset className="stars-input">
@@ -28,6 +28,6 @@ export function RatingForm({ appointmentId }: { appointmentId: string }) {
       <p className="meta"><Icon name="eye-off" /> Votre note est transmise uniquement à l’équipe MONGANGA. Elle n’est pas publiée et le médecin ne la voit pas.</p>
       <FormMessage state={state} />
       <SubmitButton className="btn btn-secondary" disabled={!stars}>Envoyer ma note</SubmitButton>
-    </form>
+    </Form>
   )
 }

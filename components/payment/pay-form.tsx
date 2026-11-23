@@ -1,7 +1,7 @@
 'use client'
 import { useActionState, useState } from 'react'
 import { Icon } from '@/components/ui/icon'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { PAYMENT_METHODS, usd } from '@/lib/format'
 import type { ActionState, PaymentKind, PaymentMethod } from '@/lib/types'
 
@@ -19,7 +19,7 @@ export function PayForm({ action, appointmentId, kind, amountCents, defaultPhone
   const [method, setMethod] = useState<PaymentMethod>('mpesa')
   const [state, formAction] = useActionState<ActionState, FormData>(action, {})
   return (
-    <form action={formAction} className="stack">
+    <Form action={formAction} className="stack">
       <input type="hidden" name="appointment_id" value={appointmentId} />
       <input type="hidden" name="kind" value={kind} />
       <fieldset className="v3-methods">
@@ -47,6 +47,6 @@ export function PayForm({ action, appointmentId, kind, amountCents, defaultPhone
         {cta} · {usd(amountCents)}
       </SubmitButton>
       <p className="meta v3-secure"><Icon name="shield-check" /> Paiement traité par notre partenaire agréé. MONGANGA ne conserve aucun numéro de carte.</p>
-    </form>
+    </Form>
   )
 }

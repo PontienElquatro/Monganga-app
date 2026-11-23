@@ -1,6 +1,6 @@
 'use client'
 import { useActionState } from 'react'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { updateMyProfileAction } from '@/app/actions/profil'
 import { COMMUNES } from '@/lib/format'
 import type { ActionState, Profile } from '@/lib/types'
@@ -9,7 +9,7 @@ import type { ActionState, Profile } from '@/lib/types'
 export function ProfileForm({ profile, showHealthFields = true }: { profile: Profile; showHealthFields?: boolean }) {
   const [state, action] = useActionState<ActionState, FormData>(updateMyProfileAction, {})
   return (
-    <form action={action} className="stack">
+    <Form action={action} className="stack">
       <div className="grid-2">
         <div className="field"><label htmlFor="first_name">Prénom</label><input className="form-input" id="first_name" name="first_name" defaultValue={profile.first_name} required maxLength={80} autoComplete="given-name" /></div>
         <div className="field"><label htmlFor="last_name">Nom</label><input className="form-input" id="last_name" name="last_name" defaultValue={profile.last_name} required maxLength={80} autoComplete="family-name" /></div>
@@ -36,6 +36,6 @@ export function ProfileForm({ profile, showHealthFields = true }: { profile: Pro
       {showHealthFields ? <p className="meta">L’âge, le sexe et la commune aident le médecin pendant la consultation. Il ne voit jamais votre e-mail ni votre téléphone.</p> : null}
       <FormMessage state={state} />
       <SubmitButton icon="check">Enregistrer</SubmitButton>
-    </form>
+    </Form>
   )
 }

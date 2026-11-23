@@ -1,13 +1,13 @@
 'use client'
 import { useActionState } from 'react'
-import { FormMessage, SubmitButton } from '@/components/ui/form'
+import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { createSlotsAction } from '@/app/medecin/actions'
 import type { ActionState } from '@/lib/types'
 
 export function SlotsForm({ minDate, maxDate }: { minDate: string; maxDate: string }) {
   const [state, action] = useActionState<ActionState, FormData>(createSlotsAction, {})
   return (
-    <form action={action} className="stack">
+    <Form action={action} className="stack">
       <div className="field"><label htmlFor="date">Jour</label><input className="form-input" id="date" name="date" type="date" min={minDate} max={maxDate} defaultValue={minDate} required /></div>
       <div className="grid-2">
         <div className="field"><label htmlFor="from">De</label><input className="form-input" id="from" name="from" type="time" step={1800} defaultValue="09:00" required /></div>
@@ -25,6 +25,6 @@ export function SlotsForm({ minDate, maxDate }: { minDate: string; maxDate: stri
       <FormMessage state={state} />
       <SubmitButton icon="plus">Ouvrir les créneaux</SubmitButton>
       <p className="meta">La plage est découpée en créneaux de 30 minutes. Les créneaux qui chevauchent un créneau existant sont ignorés.</p>
-    </form>
+    </Form>
   )
 }
