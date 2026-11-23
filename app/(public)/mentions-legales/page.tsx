@@ -12,7 +12,7 @@ export default function MentionsPage() {
       <h2>2. Conception et développement</h2>
       <p>BisoTech, Kinshasa.</p>
       <h2>3. Hébergement</h2>
-      <p>Site web : Cloudflare Inc. Base de données et fichiers : Supabase. Visio : Daily.co.</p>
+      <p>Cloudflare, Inc., 101 Townsend Street, San Francisco, CA 94107, États-Unis.</p>
       <h2>4. Propriété intellectuelle</h2>
       <p>Le nom MONGANGA, le logo, les textes et les visuels de la plateforme sont protégés. Toute reproduction sans autorisation est interdite.</p>
       <h2>5. Contact</h2>
