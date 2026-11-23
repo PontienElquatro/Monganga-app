@@ -27,6 +27,7 @@ export interface Profile {
   sex: 'F' | 'M' | null
   commune: string | null
   suspended_at: string | null
+  deleted_at?: string | null
   /** Rôles dans l'équipe d'administration (vide pour les patients et médecins). */
   admin_roles?: AdminRole[]
   created_at: string

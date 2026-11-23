@@ -18,8 +18,8 @@ export const metadata: Metadata = { title: 'Utilisateurs' }
 
 const ROLES: Record<UserRole, string> = { patient: 'Patient', medecin: 'Médecin', admin: 'Administrateur' }
 
-export default async function UtilisateursPage({ searchParams }: { searchParams: Promise<{ q?: string; role?: string }> }) {
-  const { q, role } = await searchParams
+export default async function UtilisateursPage({ searchParams }: { searchParams: Promise<{ q?: string; role?: string; supprime?: string }> }) {
+  const { q, role, supprime } = await searchParams
   const session = await requireAdmin('support')
   const supabase = await createClient()
   let query = supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(300)
@@ -31,6 +31,7 @@ export default async function UtilisateursPage({ searchParams }: { searchParams:
   return (
     <>
       <PageHeading space="Administration" title="Utilisateurs" description="Patients, médecins et équipe. Ouvrez un nom pour voir ses rendez-vous. Suspendre bloque l’accès et annule (avec remboursement) les rendez-vous à venir." />
+      {supprime ? <p className="notice success mb-4" role="status">Compte supprimé définitivement. L’adresse e-mail peut de nouveau servir à une inscription.</p> : null}
       <form className="inline-form mb-4" method="get">
         <input className="form-input" name="q" defaultValue={q ?? ''} placeholder="Nom ou e-mail" aria-label="Rechercher" />
         <select className="form-input" name="role" defaultValue={role ?? ''} aria-label="Rôle">
@@ -52,8 +53,8 @@ export default async function UtilisateursPage({ searchParams }: { searchParams:
                   <td>{p.phone ?? '—'}</td>
                   <td>{dateShort(p.created_at)}</td>
                   <td>
-                    {p.suspended_at ? <Badge tone="suspended">Suspendu</Badge> : <Badge tone="active">Actif</Badge>}
-                    {p.id !== session.userId && p.role !== 'admin' ? (
+                    {p.deleted_at ? <Badge tone="neutral">Supprimé</Badge> : p.suspended_at ? <Badge tone="suspended">Suspendu</Badge> : <Badge tone="active">Actif</Badge>}
+                    {p.id !== session.userId && p.role !== 'admin' && !p.deleted_at ? (
                       <ActionForm action={setSuspendedAction} className="inline-form">
                         <input type="hidden" name="user_id" value={p.id} />
                         <input type="hidden" name="suspend" value={p.suspended_at ? 'false' : 'true'} />

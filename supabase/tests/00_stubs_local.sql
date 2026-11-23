@@ -17,7 +17,19 @@ create table if not exists auth.users (
   email text unique,
   raw_user_meta_data jsonb default '{}'::jsonb,
   email_confirmed_at timestamptz,
+  phone text,
+  encrypted_password text,
+  banned_until timestamptz,
   created_at timestamptz default now()
+);
+create table if not exists auth.identities (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  provider text not null default 'email'
+);
+create table if not exists auth.sessions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade
 );
 
 create or replace function auth.uid() returns uuid language sql stable as $$

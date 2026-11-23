@@ -6,12 +6,13 @@ import { Avatar } from '@/components/ui/avatar'
 import { AppointmentBadge, Badge, DoctorBadge } from '@/components/ui/status'
 import { ActionForm } from '@/components/ui/action-form'
 import { SubmitButton } from '@/components/ui/form'
+import { ConfirmSubmit } from '@/components/ui/confirm-submit'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeading } from '@/components/ui/page-heading'
 import { hasAdminRole, requireAdmin } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { confirmUserEmailAction, resendUserConfirmationAction } from '@/app/admin/actions'
+import { confirmUserEmailAction, deleteUserAction, resendUserConfirmationAction, setSuspendedAction } from '@/app/admin/actions'
 import { adminRolesLabel } from '@/lib/admin-roles'
 import { DOCUMENT_LABELS, dateLong, dateShort, dateTime, fullName, maskAccount, payoutLabel, usd } from '@/lib/format'
 import type { AppointmentStatus, DoctorProfile, DocumentKind, Profile } from '@/lib/types'
@@ -45,6 +46,10 @@ export default async function UtilisateurDetailPage({ params }: { params: Promis
   const rows = (appts ?? []) as Row[]
   const confirmedAt = auth?.user?.email_confirmed_at ?? null
   const lastSignIn = auth?.user?.last_sign_in_at ?? null
+  const deleted = Boolean(profile.deleted_at)
+  const isSelf = profile.id === session.userId
+  const canSuspend = !deleted && !isSelf && (profile.role !== 'admin' || isSuper)
+  const canDelete = !deleted && !isSelf && isSuper
   const docKinds = new Set(((docs ?? []) as { kind: DocumentKind }[]).map((d) => d.kind))
 
   return (
@@ -66,8 +71,8 @@ export default async function UtilisateurDetailPage({ params }: { params: Promis
           <Line label="Inscrit le">{dateLong(profile.created_at)}</Line>
           <Line label="Conditions acceptées">{profile.accepted_terms_at ? dateShort(profile.accepted_terms_at) : '—'}</Line>
           <Line label="Dernière connexion">{lastSignIn ? dateTime(lastSignIn) : 'Jamais'}</Line>
-          <Line label="Accès">{profile.suspended_at ? <Badge tone="suspended">Suspendu depuis le {dateShort(profile.suspended_at)}</Badge> : <Badge tone="active">Actif</Badge>}</Line>
-          {!confirmedAt ? (
+          <Line label="Accès">{deleted ? <Badge tone="neutral">Supprimé le {dateShort(profile.deleted_at!)}</Badge> : profile.suspended_at ? <Badge tone="suspended">Suspendu depuis le {dateShort(profile.suspended_at)}</Badge> : <Badge tone="active">Actif</Badge>}</Line>
+          {!confirmedAt && !deleted ? (
             <div className="stack">
               <p className="meta">Cette personne n’a pas encore cliqué sur le lien de confirmation : elle ne peut pas se connecter.</p>
               <ActionForm action={resendUserConfirmationAction}>
@@ -114,6 +119,37 @@ export default async function UtilisateurDetailPage({ params }: { params: Promis
           ) : null}
         </section>
       </div>
+
+      {deleted ? (
+        <p className="notice mt-4">Ce compte a été supprimé : la connexion est bloquée et les données personnelles sont effacées. Son historique reste visible ci-dessous, sans nom.</p>
+      ) : canSuspend || canDelete ? (
+        <section className="panel stack mt-4">
+          <h2 className="v3-subtitle">Gérer le compte</h2>
+          {canSuspend ? (
+            <div className="stack">
+              <p className="meta">{profile.suspended_at
+                ? 'Le compte est suspendu : la personne ne peut plus rien faire sur MONGANGA. Vous pouvez lui rendre l’accès.'
+                : 'Suspendre bloque l’accès tout de suite, sans rien effacer. Les rendez-vous à venir d’un médecin sont annulés et remboursés. Vous pourrez réactiver le compte.'}</p>
+              <ActionForm action={setSuspendedAction}>
+                <input type="hidden" name="user_id" value={profile.id} />
+                <input type="hidden" name="suspend" value={profile.suspended_at ? 'false' : 'true'} />
+                {profile.suspended_at
+                  ? <SubmitButton className="btn btn-secondary btn-sm" icon="refresh-cw">Réactiver le compte</SubmitButton>
+                  : <ConfirmSubmit label="Suspendre le compte" confirmLabel="Confirmer la suspension" icon="ban" className="btn btn-secondary btn-sm" />}
+              </ActionForm>
+            </div>
+          ) : null}
+          {canDelete ? (
+            <div className="stack">
+              <p className="meta">Supprimer est définitif. Sans aucune activité, le compte est effacé entièrement et l’adresse e-mail redevient libre. S’il a un historique (rendez-vous, paiements, ordonnances), ses données personnelles et les pièces de son dossier sont effacées, la connexion est bloquée pour toujours, et l’historique est gardé sans nom.</p>
+              <ActionForm action={deleteUserAction}>
+                <input type="hidden" name="user_id" value={profile.id} />
+                <ConfirmSubmit label="Supprimer le compte" confirmLabel="Confirmer : supprimer définitivement" icon="trash" className="btn btn-ghost btn-sm" />
+              </ActionForm>
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       <h2 className="mb-4 mt-4">Rendez-vous ({rows.length})</h2>
       {rows.length ? (

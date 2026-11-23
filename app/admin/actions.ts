@@ -1,5 +1,6 @@
 'use server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { requireAdmin, requireRole } from '@/lib/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { env } from '@/lib/config'
@@ -54,6 +55,39 @@ export async function setSuspendedAction(_: ActionState, fd: FormData): Promise<
   if (!user) return { error: 'Utilisateur introuvable.' }
   return run('admin_set_suspended', { p_user: user, p_suspended: suspend },
     suspend ? 'Compte suspendu. Ses rendez-vous à venir sont annulés et remboursés.' : 'Compte réactivé.')
+}
+
+/**
+ * Suppression d'un compte (super administrateur) : vérification, effacement des pièces du dossier,
+ * puis suppression définitive (aucune activité) ou anonymisation (historique conservé sans nom).
+ */
+export async function deleteUserAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = id(fd, 'user_id')
+  if (!user) return { error: 'Utilisateur introuvable.' }
+  await requireAdmin('super')
+  const supabase = await createClient()
+  const check = await supabase.rpc('admin_delete_user', { p_user: user, p_check_only: true })
+  if (check.error) return { error: friendlyError(check.error) }
+
+  const admin = createAdminClient()
+  const { data: files, error: listError } = await admin.storage.from('candidatures').list(user, { limit: 100 })
+  if (listError) {
+    console.error('[suppression] liste des pièces', listError.message)
+    return { error: 'Impossible d’effacer les pièces du dossier pour le moment. Réessayez dans un instant.' }
+  }
+  if (files?.length) {
+    const { error: removeError } = await admin.storage.from('candidatures').remove(files.map((f) => `${user}/${f.name}`))
+    if (removeError) {
+      console.error('[suppression] effacement des pièces', removeError.message)
+      return { error: 'Impossible d’effacer les pièces du dossier pour le moment. Réessayez dans un instant.' }
+    }
+  }
+
+  const { data: mode, error } = await supabase.rpc('admin_delete_user', { p_user: user })
+  if (error) return { error: friendlyError(error) }
+  revalidatePath('/admin', 'layout')
+  if (mode === 'definitif') redirect('/admin/utilisateurs?supprime=1')
+  return { ok: true, message: 'Compte supprimé. Ses données personnelles sont effacées ; ses rendez-vous et paiements restent dans l’historique, sans nom.' }
 }
 
 // ----- Argent -----
