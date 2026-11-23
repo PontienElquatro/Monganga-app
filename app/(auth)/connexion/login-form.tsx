@@ -5,10 +5,12 @@ import { loginAction } from '../actions'
 import { Icon } from '@/components/ui/icon'
 import { Form, FormMessage, SubmitButton } from '@/components/ui/form'
 import { PasswordInput } from '@/components/auth/password-input'
+import { ResendForm } from '../verification-email/resend-form'
 
 export function LoginForm({ suite }: { suite: string }) {
   const [state, action] = useActionState(loginAction, {})
   return (
+    <>
     <Form action={action}>
       <input type="hidden" name="suite" value={suite} />
       <div className="form-group">
@@ -28,5 +30,7 @@ export function LoginForm({ suite }: { suite: string }) {
       <FormMessage state={state} />
       <SubmitButton className="btn btn-primary btn-lg btn-block" pendingLabel="Connexion…">Se connecter <Icon name="arrow-right" /></SubmitButton>
     </Form>
+    {state.code === 'email_non_confirme' && state.email ? <div style={{ marginTop: 12 }}><ResendForm email={state.email} /></div> : null}
+    </>
   )
 }

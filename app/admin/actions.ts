@@ -1,6 +1,8 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { requireRole } from '@/lib/auth'
+import { requireAdmin, requireRole } from '@/lib/auth'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { env } from '@/lib/config'
 import { createClient } from '@/lib/supabase/server'
 import { friendlyError } from '@/lib/errors'
 import { dollarsToCents, str } from '@/lib/validation'
@@ -115,4 +117,32 @@ export async function setTeamRolesAction(_: ActionState, fd: FormData): Promise<
   if (!email || !email.includes('@')) return { error: 'Indiquez l’adresse e-mail du compte.' }
   return run('admin_set_team_roles', { p_email: email, p_roles: roles },
     roles.length ? 'Rôles enregistrés. Ils s’appliquent à sa prochaine page ouverte.' : 'Cette personne ne fait plus partie de l’équipe.', ['/admin'])
+}
+
+// ----- Comptes : confirmation de l'adresse e-mail -----
+async function userEmail(fd: FormData): Promise<{ id: string; email: string } | null> {
+  const user = id(fd, 'user_id')
+  if (!user) return null
+  const { data } = await createAdminClient().from('profiles').select('email').eq('id', user).maybeSingle<{ email: string }>()
+  return data?.email ? { id: user, email: data.email } : null
+}
+
+export async function resendUserConfirmationAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  await requireAdmin('support')
+  const u = await userEmail(fd)
+  if (!u) return { error: 'Utilisateur introuvable.' }
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resend({ type: 'signup', email: u.email, options: { emailRedirectTo: `${env.siteUrl()}/auth/confirm` } })
+  if (error) return { error: friendlyError(error) }
+  return { ok: true, message: `Nouveau lien de confirmation envoyé à ${u.email}.` }
+}
+
+export async function confirmUserEmailAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  await requireAdmin('super')
+  const u = await userEmail(fd)
+  if (!u) return { error: 'Utilisateur introuvable.' }
+  const { error } = await createAdminClient().auth.admin.updateUserById(u.id, { email_confirm: true })
+  if (error) return { error: friendlyError(error) }
+  revalidatePath(`/admin/utilisateurs/${u.id}`)
+  return { ok: true, message: 'Adresse e-mail confirmée. La personne peut se connecter.' }
 }

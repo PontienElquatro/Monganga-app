@@ -19,6 +19,9 @@ export async function loginAction(_: ActionState, fd: FormData): Promise<ActionS
   if (!isEmail(email) || !password) return { error: 'Indiquez votre adresse e-mail et votre mot de passe.' }
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
+  if (error && /Email not confirmed/i.test(error.message)) {
+    return { error: 'Votre adresse e-mail n’est pas encore confirmée. Utilisez le dernier lien reçu, ou demandez-en un nouveau ci-dessous.', code: 'email_non_confirme', email }
+  }
   if (error) return { error: friendlyError(error) }
   const session = await getSession()
   const next = safeNext(str(fd, 'suite', 300))

@@ -158,4 +158,7 @@ export interface ActionState {
   ok?: boolean
   error?: string
   message?: string
+  /** Cas particulier à traiter par l'écran (ex. e-mail non confirmé). */
+  code?: string
+  email?: string
 }
