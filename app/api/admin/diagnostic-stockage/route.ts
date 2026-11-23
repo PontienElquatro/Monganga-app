@@ -14,7 +14,7 @@ export async function GET() {
 
   const raw = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   const key = env.serviceRoleKey()
-  const url = new URL(raw.trim())
+  const url = new URL(env.supabaseUrl())
   const host = url.host
   const ref = host.split('.')[0]
   const auth = { apikey: key, Authorization: `Bearer ${key}` }

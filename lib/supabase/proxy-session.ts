@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { cleanSupabaseUrl } from './url'
 
 const PRIVATE_PREFIXES = ['/paiement-test', '/patient', '/medecin', '/admin', '/dossier', '/notifications']
 
@@ -10,7 +11,7 @@ export async function updateSession(request: NextRequest) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !key) return response
 
-  const supabase = createServerClient(url, key, {
+  const supabase = createServerClient(cleanSupabaseUrl(url), key, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(list) {
