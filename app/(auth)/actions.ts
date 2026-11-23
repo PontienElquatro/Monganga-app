@@ -180,19 +180,45 @@ export async function finishDoctorSignupAction(userId: string, proof: string, up
 
 // ---------------------------------------------------------------------
 // Nouvelle soumission par un médecin connecté (après refus ou complément demandé).
-// Les fichiers sont envoyés directement par le navigateur (session + règles de stockage).
+// Comme à l'inscription : le serveur prépare un lien d'envoi signé par pièce,
+// le navigateur y dépose le fichier, puis le serveur vérifie et enregistre.
 // ---------------------------------------------------------------------
+const EDITABLE: string[] = ['en_attente', 'complement_demande', 'refuse']
+
+export async function prepareResubmitUploadsAction(docs: DocMeta[]): Promise<{ error?: string; uploads?: UploadTicket[] }> {
+  const session = await getSession()
+  if (!session || session.profile.role !== 'medecin') return { error: 'Votre session a expiré. Reconnectez-vous avec votre compte médecin, puis renvoyez vos pièces.' }
+  if (!session.doctor || !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
+  const docProblem = checkDocs(docs, false)
+  if (docProblem) return { error: docProblem }
+  const admin = createAdminClient()
+  const uploads: UploadTicket[] = []
+  for (const d of docs) {
+    const path = `${session.userId}/${d.kind}-${crypto.randomUUID().slice(0, 8)}.${extension(d.type)}`
+    const { data: signed, error: signError } = await admin.storage.from('candidatures').createSignedUploadUrl(path)
+    if (signError || !signed) return { error: 'Impossible de préparer l’envoi des pièces. Réessayez dans un instant.' }
+    uploads.push({ kind: d.kind, path, token: signed.token, name: d.name.slice(0, 120), size: d.size })
+  }
+  return { uploads }
+}
+
 export async function resubmitApplicationAction(fd: FormData, uploaded: { kind: DocumentKind; path: string; name: string; size: number }[]): Promise<{ error?: string }> {
   const session = await getSession()
   if (!session || session.profile.role !== 'medecin') return { error: 'Connectez-vous avec votre compte médecin.' }
   const app = readApplication(fd)
   if (!app.specialty || !app.fee || !app.payout) return { error: 'Complétez la spécialité, le tarif et le moyen de versement.' }
+  if (!session.doctor || !EDITABLE.includes(session.doctor.status)) return { error: 'Votre dossier ne peut pas être modifié pour le moment.' }
   const supabase = await createClient()
   if (uploaded.length) {
+    // On n'enregistre que les fichiers réellement présents dans le dossier privé du médecin.
+    const admin = createAdminClient()
+    const { data: files } = await admin.storage.from('candidatures').list(session.userId, { limit: 100 })
+    const present = new Set((files ?? []).map((f) => `${session.userId}/${f.name}`))
     const rows = uploaded
-      .filter((u) => u.path.startsWith(`${session.userId}/`) && DOC_KINDS.includes(u.kind))
+      .filter((u) => u.path.startsWith(`${session.userId}/`) && present.has(u.path) && DOC_KINDS.includes(u.kind))
       .map((u) => ({ doctor_id: session.userId, kind: u.kind, storage_path: u.path, file_name: u.name.slice(0, 120), size_bytes: Math.max(1, Math.min(u.size, MAX_SIZE)) }))
-    const { error } = await supabase.from('doctor_documents').insert(rows)
+    if (rows.length < uploaded.length) return { error: 'Une pièce n’a pas été reçue. Vérifiez votre connexion internet et réessayez.' }
+    const { error } = await admin.from('doctor_documents').upsert(rows, { onConflict: 'storage_path' })
     if (error) return { error: friendlyError(error) }
   }
   const { error } = await supabase.rpc('submit_application', {

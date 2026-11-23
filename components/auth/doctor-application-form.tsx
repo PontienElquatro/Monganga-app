@@ -6,7 +6,7 @@ import { Icon } from '@/components/ui/icon'
 import { PasswordInput } from '@/components/auth/password-input'
 import { COMMUNES, PAYOUT_METHODS, SPECIALTIES } from '@/lib/format'
 import {
-  finishDoctorSignupAction, resubmitApplicationAction, startDoctorSignupAction, type DocMeta,
+  finishDoctorSignupAction, prepareResubmitUploadsAction, resubmitApplicationAction, startDoctorSignupAction, type DocMeta,
 } from '@/app/(auth)/actions'
 import type { DocumentKind, PayoutMethod } from '@/lib/types'
 
@@ -80,14 +80,22 @@ export function DoctorApplicationForm({ mode, userId, defaults, existingKinds = 
         router.push(`/verification-email?medecin=1&email=${encodeURIComponent(email)}${done.length < res.uploads.length ? '&pieces=incompletes' : ''}`)
       } else {
         const uploaded: { kind: DocumentKind; path: string; name: string; size: number }[] = []
-        const entries = Object.entries(files)
-        for (const [i, [kind, file]] of entries.entries()) {
-          setStep(`Envoi des pièces (${i + 1}/${entries.length})…`)
-          const ext = file!.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'pdf'
-          const path = `${userId}/${kind}-${crypto.randomUUID().slice(0, 8)}.${ext}`
-          const { error: upErr } = await supabase.storage.from('candidatures').upload(path, file!, { contentType: file!.type })
-          if (upErr) { setError(`Envoi impossible pour « ${file!.name} ». Réessayez.`); setStep(null); return }
-          uploaded.push({ kind: kind as DocumentKind, path, name: file!.name, size: file!.size })
+        if (docs.length) {
+          setStep('Préparation de l’envoi…')
+          const prep = await prepareResubmitUploadsAction(docs)
+          if (prep.error || !prep.uploads) { setError(prep.error ?? 'Erreur inattendue.'); setStep(null); return }
+          for (const [i, u] of prep.uploads.entries()) {
+            const file = files[u.kind]!
+            setStep(`Envoi des pièces (${i + 1}/${prep.uploads.length})…`)
+            const { error: upErr } = await supabase.storage.from('candidatures').uploadToSignedUrl(u.path, u.token, file, { contentType: file.type })
+            if (upErr) {
+              console.error('[pièces]', upErr)
+              setError(`Envoi impossible pour « ${file.name} ». Vérifiez votre connexion internet et réessayez.`)
+              setStep(null)
+              return
+            }
+            uploaded.push({ kind: u.kind, path: u.path, name: file.name, size: file.size })
+          }
         }
         setStep('Envoi du dossier…')
         const res = await resubmitApplicationAction(fd, uploaded)
