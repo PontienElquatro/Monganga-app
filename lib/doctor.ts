@@ -34,8 +34,8 @@ export function nextSaturday(): string {
 }
 
 /** Le patient peut être joint dans la salle de 5 min avant à 10 min après la fin. */
-export function roomOpen(a: { starts_at: string; ends_at: string; status: string }, closeMinutes = 10, now = Date.now()): boolean {
+export function roomOpen(a: { starts_at: string; ends_at: string; status: string }, closeMinutes = 10, now = Date.now(), openMinutes = 5): boolean {
   return (a.status === 'confirme' || a.status === 'en_cours') &&
-    now >= new Date(a.starts_at).getTime() - 5 * 60_000 &&
+    now >= new Date(a.starts_at).getTime() - openMinutes * 60_000 &&
     now <= new Date(a.ends_at).getTime() + closeMinutes * 60_000
 }

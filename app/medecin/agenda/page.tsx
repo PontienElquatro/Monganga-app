@@ -38,7 +38,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         <section key={day}>
           <h2 className="agenda-day">{dateLong(rows[0].starts_at)}</h2>
           {rows.map((a) => (
-            <AgendaRow key={a.id} a={a} open={roomOpen(a, settings.fermeture_salle_minutes, now)}
+            <AgendaRow key={a.id} a={a} open={roomOpen(a, settings.fermeture_salle_minutes, now, settings.ouverture_salle_minutes)}
                        actions={(a.status === 'confirme' || a.status === 'en_attente_acompte') && new Date(a.ends_at).getTime() > now ? <DoctorCancelForm appointmentId={a.id} /> : null} />
           ))}
         </section>

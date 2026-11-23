@@ -59,7 +59,7 @@ export default async function MedecinDashboard() {
           <div><div className="card-title">Aujourd’hui</div><div className="card-subtitle">{dateLong(new Date().toISOString())} · heure de Kinshasa</div></div>
           <Link className="btn btn-ghost btn-sm" href="/medecin/agenda">Tout l’agenda <Icon name="chevron-right" /></Link>
         </div>
-        {todayList.length ? todayList.map((a) => <AgendaRow key={a.id} a={a} open={roomOpen(a, settings.fermeture_salle_minutes, now)} />) : (
+        {todayList.length ? todayList.map((a) => <AgendaRow key={a.id} a={a} open={roomOpen(a, settings.fermeture_salle_minutes, now, settings.ouverture_salle_minutes)} />) : (
           <EmptyState icon="calendar" title="Aucune consultation aujourd’hui" text="Les rendez-vous confirmés (acompte payé) apparaissent ici." />
         )}
       </section>
