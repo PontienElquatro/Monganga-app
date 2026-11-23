@@ -230,7 +230,7 @@ export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, i
                   {joining ? 'Connexion…' : canEnter ? 'Démarrer la consultation' : `La salle ouvre à ${time(new Date(opens).toISOString())}`}
                 </button>
               )}
-              <p className="meta">Votre navigateur vous demandera l’accès à la caméra et au micro. Vous pouvez entrer jusqu’à 5 minutes avant l’heure.</p>
+              <p className="meta">Votre navigateur vous demandera l’accès à la caméra et au micro. Vous pouvez entrer jusqu’à {opensMinutes} minute{opensMinutes > 1 ? 's' : ''} avant l’heure.</p>
             </div>
             {chat}
           </section>

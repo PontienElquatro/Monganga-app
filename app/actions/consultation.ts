@@ -31,7 +31,7 @@ export async function joinConsultationAction(appointmentId: string): Promise<Joi
     const access = await getVisioAccess({ roomName: data.room_name, userName: name, isDoctor, closesAt: data.closes_at })
     return { ok: true, mode: access.mode, url: access.url, closesAt: data.closes_at }
   } catch (e) {
-    console.error('[visio]', e)
+    console.error('[visio]', e instanceof Error ? e.message : String(e))
     return { ok: false, error: 'La vidéo ne répond pas pour le moment. Le chat reste disponible ; réessayez dans un instant.' }
   }
 }
