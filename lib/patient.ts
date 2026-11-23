@@ -23,5 +23,6 @@ export async function getTiming(): Promise<Timing> {
     absenceMinutes: s.absence_minutes,
     fermetureSalleMinutes: s.fermeture_salle_minutes,
     annulationGratuiteHeures: s.annulation_gratuite_heures,
+    ouvertureSalleMinutes: s.ouverture_salle_minutes,
   }
 }

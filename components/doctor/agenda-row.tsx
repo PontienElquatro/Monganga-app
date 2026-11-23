@@ -25,10 +25,12 @@ export function AgendaRow({ a, open, actions }: { a: AgendaItem; open: boolean; 
         {a.has_prescription ? <Badge tone="completed">Ordonnance émise</Badge> : null}
       </div>
       <div className="actions">
-        {open || a.status === 'terminee' ? (
-          <Link className={`btn ${open ? 'btn-primary' : 'btn-secondary'} btn-sm`} href={`/medecin/consultation/${a.id}`}>
-            <Icon name={open ? 'video' : 'file-text'} /> {open ? 'Ouvrir la salle' : 'Dossier'}
-          </Link>
+        {open ? (
+          <Link className="btn btn-primary btn-sm" href={`/medecin/consultation/${a.id}`}><Icon name="video" /> Ouvrir la salle</Link>
+        ) : a.status === 'confirme' || a.status === 'en_cours' ? (
+          <Link className="btn btn-secondary btn-sm" href={`/medecin/consultation/${a.id}`}><Icon name="video" /> Salle d’attente</Link>
+        ) : a.status === 'terminee' ? (
+          <Link className="btn btn-secondary btn-sm" href={`/medecin/consultation/${a.id}`}><Icon name="file-text" /> Dossier</Link>
         ) : null}
         {actions}
       </div>

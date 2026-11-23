@@ -8,6 +8,7 @@ export interface Timing {
   absenceMinutes: number
   fermetureSalleMinutes: number
   annulationGratuiteHeures: number
+  ouvertureSalleMinutes?: number
 }
 
 export interface NextStep {
@@ -43,7 +44,7 @@ export function patientStep(a: PatientAppointment, t: Timing, now = Date.now()):
     if (now < opens) {
       return {
         label: `Solde · ${usd(balance)}`, href: null, icon: 'clock',
-        hint: `Le paiement du solde ouvre à ${time(new Date(opens).toISOString())}, une heure avant la consultation.`,
+        hint: `Le paiement du solde ouvre à ${time(new Date(opens).toISOString())}.`,
         badge: { label: 'Confirmé', tone: 'confirmed' },
       }
     }
@@ -57,10 +58,11 @@ export function patientStep(a: PatientAppointment, t: Timing, now = Date.now()):
     return { label: 'Délai dépassé', href: null, icon: 'circle-alert', hint: 'Le délai pour payer le solde est dépassé.', badge: { label: 'Solde non payé', tone: 'cancelled' } }
   }
   if (a.status === 'confirme' || a.status === 'en_cours') {
-    if (now < start - 5 * MIN) {
+    const roomOpens = start - (t.ouvertureSalleMinutes ?? 5) * MIN
+    if (now < roomOpens) {
       return {
         label: 'Salle d’attente', href: `/patient/consultation/${a.id}`, icon: 'video',
-        hint: `Tout est payé. La salle ouvre à ${time(new Date(start - 5 * MIN).toISOString())}.`,
+        hint: `Tout est payé. La salle ouvre à ${time(new Date(roomOpens).toISOString())}.`,
         badge: { label: 'Prêt', tone: 'confirmed' },
       }
     }
