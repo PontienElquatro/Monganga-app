@@ -156,7 +156,7 @@ export async function startDoctorSignupAction(fd: FormData, docs: DocMeta[]): Pr
     const path = `${userId}/${d.kind}-${crypto.randomUUID().slice(0, 8)}.${extension(d.type)}`
     const { data: signed, error: signError } = await admin.storage.from('candidatures').createSignedUploadUrl(path)
     // Le compte et le dossier existent déjà : une pièce non préparée sera ajoutée depuis « Mon dossier ».
-    if (signError || !signed) { console.error('[pièces] lien d’envoi', signError?.message); continue }
+    if (signError || !signed) { console.error('[pièces] lien d’envoi', signError?.message, JSON.stringify(signError)); continue }
     uploads.push({ kind: d.kind, path, token: signed.token, name: d.name.slice(0, 120), size: d.size })
   }
   const expires = Date.now() + 30 * 60 * 1000
@@ -201,7 +201,7 @@ export async function prepareResubmitUploadsAction(docs: DocMeta[]): Promise<{ e
     const path = `${session.userId}/${d.kind}-${crypto.randomUUID().slice(0, 8)}.${extension(d.type)}`
     const { data: signed, error: signError } = await admin.storage.from('candidatures').createSignedUploadUrl(path)
     if (signError || !signed) {
-      console.error('[pièces] lien d’envoi', signError?.message)
+      console.error('[pièces] lien d’envoi', signError?.message, JSON.stringify(signError))
       return { error: 'Impossible de préparer l’envoi des pièces. Réessayez dans un instant.' }
     }
     uploads.push({ kind: d.kind, path, token: signed.token, name: d.name.slice(0, 120), size: d.size })
