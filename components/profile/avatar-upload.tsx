@@ -55,7 +55,7 @@ export function AvatarUpload({ name, url, enabled }: { name: string; url: string
       <Avatar name={name} url={url} size="xl" />
       <div className="stack-sm">
         <strong>Photo de profil</strong>
-        <span className="meta">{enabled ? 'Facultative. JPG, PNG ou WEBP, 5 Mo maximum.' : 'L’envoi de photos sera activé une fois Cloudinary branché.'}</span>
+        <span className="meta">{enabled ? 'Facultative. JPG, PNG ou WEBP, 5 Mo maximum.' : 'L’ajout de photo n’est pas encore disponible.'}</span>
         <div className="actions">
           <button className="btn btn-secondary btn-sm" type="button" onClick={() => input.current?.click()} disabled={!enabled || busy}>
             <Icon name={busy ? 'loader' : 'camera'} className={busy ? 'spin' : undefined} /> {url ? 'Changer' : 'Ajouter une photo'}

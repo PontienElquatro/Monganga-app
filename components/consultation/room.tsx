@@ -264,7 +264,7 @@ export function ConsultationRoom({ ctx, me, meName, meAvatar, initialMessages, i
               <div className="v3-remote placeholder">
                 <Avatar name={ctx.other_name} url={ctx.other_avatar} size="xl" />
                 <span>{ctx.other_name}</span>
-                <small className="test-video-note">{closed ? 'La salle est fermée.' : 'Mode test : la vidéo Daily.co n’est pas encore branchée. Le minuteur, les messages et les documents fonctionnent.'}</small>
+                <small className="test-video-note">{closed ? 'La salle est fermée.' : 'La vidéo n’est pas disponible pour le moment. Le minuteur, les messages et l’envoi de documents fonctionnent.'}</small>
               </div>
             )}
             {warn ? <div className="v3-warn"><Icon name="clock" /> Il reste 5 minutes. La salle se fermera à {time(ctx.closes_at)}.</div> : null}

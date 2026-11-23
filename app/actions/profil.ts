@@ -39,7 +39,7 @@ export async function updateMyProfileAction(_: ActionState, fd: FormData): Promi
 export async function avatarSignatureAction() {
   const session = await getSession()
   if (!session) return { error: 'Session expirée. Reconnectez-vous.' }
-  if (!modes.photosEnabled()) return { error: 'L’envoi de photos sera disponible une fois Cloudinary branché.' }
+  if (!modes.photosEnabled()) return { error: 'L’ajout de photo n’est pas encore disponible.' }
   return { ok: true as const, params: signAvatarUpload(session.userId) }
 }
 

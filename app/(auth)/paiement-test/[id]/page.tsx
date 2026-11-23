@@ -30,7 +30,7 @@ export default async function PaiementTestPage({ params }: { params: Promise<{ i
 
   return (
     <div className="stack">
-      <p className="notice warning"><Icon name="info" /> <span><strong>Paiement de test.</strong> Aucun argent ne circule. Cette page remplace celle du prestataire (M-Pesa, Orange Money, Airtel Money, carte) tant que l’API de paiement n’est pas branchée.</span></p>
+      <p className="notice warning"><Icon name="info" /> <span><strong>Paiement de test.</strong> Aucun argent ne circule. Pendant la phase de test, cette page simule la confirmation du paiement.</span></p>
       <h1 className="auth-title">{p.kind === 'acompte' ? 'Acompte de réservation' : 'Solde de la consultation'}</h1>
       <div className="v3-summary">
         <div className="total"><span>Montant</span><strong>{usd(p.amount_cents)}</strong></div>
