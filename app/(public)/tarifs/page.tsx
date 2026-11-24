@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
 
-export const metadata: Metadata = { title: 'Tarifs' }
+export const metadata: Metadata = { title: 'Tarifs', description: 'Tarifs des téléconsultations MONGANGA : acompte, solde et remboursements, en toute transparence.', alternates: { canonical: '/tarifs' } }
 
 export default function TarifsPage() {
   return (

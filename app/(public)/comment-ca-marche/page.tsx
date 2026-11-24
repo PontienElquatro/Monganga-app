@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { Icon, type IconName } from '@/components/ui/icon'
 
-export const metadata: Metadata = { title: 'Comment ça marche' }
+export const metadata: Metadata = { title: 'Comment ça marche', description: 'Créez votre compte, choisissez un médecin, payez l’acompte par Mobile Money et consultez en visio depuis votre téléphone.', alternates: { canonical: '/comment-ca-marche' } }
 
 const STEPS: { icon: IconName; title: string; text: string; points: string[] }[] = [
   { icon: 'user-plus', title: 'Créez votre compte', text: 'Une adresse e-mail et un mot de passe suffisent. Le téléphone et la photo sont facultatifs.', points: ['Inscription en une minute', 'Lien de confirmation par e-mail', 'Données protégées'] },

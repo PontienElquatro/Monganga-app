@@ -10,10 +10,21 @@ import './styles/marque.css'
 import './styles/pages.css'
 import './styles/app.css'
 
+const DESCRIPTION = 'MONGANGA, la téléconsultation médicale en RDC : consultez un médecin congolais vérifié en visio depuis votre téléphone, à Kinshasa. Paiement Mobile Money, ordonnance en ligne.'
+
 export const metadata: Metadata = {
-  title: { default: 'MONGANGA — Consultation médicale en visio', template: '%s · MONGANGA' },
-  description: 'Monganga na yo, na tshombo na yo. Consultez un médecin vérifié en visio depuis votre téléphone, à Kinshasa.',
+  metadataBase: new URL('https://monganga.org'),
+  title: { default: 'MONGANGA — Téléconsultation médicale en RDC, médecin en visio à Kinshasa', template: '%s · MONGANGA' },
+  description: DESCRIPTION,
   applicationName: 'MONGANGA',
+  keywords: ['MONGANGA', 'monganga', 'téléconsultation RDC', 'médecin en ligne Kinshasa', 'consultation vidéo', 'médecin congolais', 'santé RDC', 'Monganga na yo'],
+  openGraph: {
+    type: 'website', locale: 'fr_CD', url: 'https://monganga.org', siteName: 'MONGANGA',
+    title: 'MONGANGA — Téléconsultation médicale en RDC', description: DESCRIPTION,
+    images: [{ url: '/images/medecin-teleconsultation.webp', width: 1600, height: 1067, alt: 'Médecin congolais en téléconsultation' }],
+  },
+  twitter: { card: 'summary_large_image', title: 'MONGANGA — Téléconsultation médicale en RDC', description: DESCRIPTION, images: ['/images/medecin-teleconsultation.webp'] },
+  robots: { index: true, follow: true },
 }
 
 export const viewport: Viewport = {

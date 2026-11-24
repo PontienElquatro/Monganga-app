@@ -4,7 +4,7 @@ import { DoctorFilters } from '@/components/doctors/doctor-filters'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getSpecialtiesAndCommunes, listDoctors, type DoctorFilters as Filters } from '@/lib/doctors'
 
-export const metadata: Metadata = { title: 'Nos médecins' }
+export const metadata: Metadata = { title: 'Nos médecins', description: 'Trouvez un médecin congolais vérifié et réservez une consultation vidéo à Kinshasa, avec paiement Mobile Money.', alternates: { canonical: '/medecins' } }
 
 export default async function MedecinsPage({ searchParams }: { searchParams: Promise<Filters> }) {
   const filters = await searchParams

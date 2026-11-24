@@ -1,12 +1,32 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
+
+export const metadata: Metadata = { alternates: { canonical: '/' } }
+
+// Carte d'identité de MONGANGA pour Google (données structurées).
+const ORGANISATION = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalOrganization',
+  name: 'MONGANGA',
+  alternateName: 'Monganga na yo, na tshombo na yo',
+  url: 'https://monganga.org',
+  logo: 'https://monganga.org/logo/monganga-icon-512.png',
+  description: 'Téléconsultation médicale en République démocratique du Congo : médecins vérifiés, consultation en visio, paiement Mobile Money.',
+  email: 'contact@monganga.org',
+  areaServed: { '@type': 'City', name: 'Kinshasa' },
+  address: { '@type': 'PostalAddress', addressLocality: 'Kinshasa', addressCountry: 'CD' },
+  medicalSpecialty: 'PrimaryCare',
+}
 
 export default function AccueilPage() {
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANISATION) }} />
       <section className="container">
         <div className="hero">
           <div className="slide-in-left">
+            <p className="eyebrow">MONGANGA · Téléconsultation médicale en RDC</p>
             <h1 className="hero-title">Monganga na yo,<br /><em>na tshombo na yo</em></h1>
             <p className="hero-desc">
               Consultez un médecin vérifié depuis chez vous, sans vous déplacer. La santé à portée de main, à Kinshasa.

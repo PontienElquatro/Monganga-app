@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { Icon } from '@/components/ui/icon'
 import { EMAILS, mailto, type EmailBox } from '@/lib/contact'
 
-export const metadata: Metadata = { title: 'Contact' }
+export const metadata: Metadata = { title: 'Contact', description: 'Contactez l’équipe MONGANGA : questions générales, aide technique, paiements et remboursements.', alternates: { canonical: '/contact' } }
 
 const CHANNELS: { box: EmailBox; icon: 'mail' | 'lock' | 'wallet'; title: string; text: string }[] = [
   { box: 'contact', icon: 'mail', title: 'Questions générales', text: 'Informations sur MONGANGA, partenariats, candidatures de médecins, presse, données personnelles.' },

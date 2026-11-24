@@ -4,7 +4,7 @@ import { Icon } from '@/components/ui/icon'
 import { FaqList, type FaqEntry } from '@/components/public/faq-list'
 import { EMAILS } from '@/lib/contact'
 
-export const metadata: Metadata = { title: 'Questions fréquentes' }
+export const metadata: Metadata = { title: 'Questions fréquentes', description: 'Réponses aux questions sur la téléconsultation MONGANGA : rendez-vous, paiement, visio, ordonnance et remboursement.', alternates: { canonical: '/faq' } }
 
 const FAQ: FaqEntry[] = [
   { category: 'rdv', icon: 'calendar-check', question: 'Comment prendre un rendez-vous ?', answer: 'Créez votre compte, choisissez un médecin et un créneau, puis payez l’acompte de 1 $. Votre rendez-vous est confirmé dès que l’acompte est reçu.' },
